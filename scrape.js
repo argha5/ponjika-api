@@ -209,37 +209,40 @@ async function scrapeMasik(url) {
 }
 
 async function scrapeAll() {
-  try {
-    console.log('Scraping Kolkata data...');
-    const kolkataHome = await scrapeHome('https://www.ponjika.com/');
-    const kolkataSandhya = await scrapeSandhya('https://www.ponjika.com/Sandhya.aspx');
-    const kolkataMasik = await scrapeMasik('https://www.ponjika.com/eMaha.aspx');
+  const dataDir = path.join(__dirname, 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir);
+  }
 
-    console.log('Scraping Bangladesh data...');
-    const bdHome = await scrapeHome('http://bd.ponjika.com/');
-    const bdSandhya = await scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx');
-    const bdMasik = await scrapeMasik('http://bd.ponjika.com/eMaha.aspx');
+  const tasks = [
+    { file: 'kolkata_home.json',    fn: () => scrapeHome('https://www.ponjika.com/') },
+    { file: 'kolkata_sandhya.json', fn: () => scrapeSandhya('https://www.ponjika.com/Sandhya.aspx') },
+    { file: 'kolkata_masik.json',   fn: () => scrapeMasik('https://www.ponjika.com/eMaha.aspx') },
+    { file: 'bd_home.json',         fn: () => scrapeHome('http://bd.ponjika.com/') },
+    { file: 'bd_sandhya.json',      fn: () => scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx') },
+    { file: 'bd_masik.json',        fn: () => scrapeMasik('http://bd.ponjika.com/eMaha.aspx') },
+  ];
 
-    if (!kolkataHome && !bdHome) {
-      throw new Error('Both Kolkata and BD home scraping failed. Aborting save.');
+  let successCount = 0;
+  for (const task of tasks) {
+    try {
+      console.log(`Fetching: ${task.file} ...`);
+      const result = await task.fn();
+      if (result) {
+        fs.writeFileSync(path.join(dataDir, task.file), JSON.stringify(result, null, 2));
+        console.log(`  ✅ Saved: ${task.file}`);
+        successCount++;
+      } else {
+        console.warn(`  ⚠️ No data returned for ${task.file}, skipping.`);
+      }
+    } catch (err) {
+      console.error(`  ❌ Error for ${task.file}: ${err.message}`);
     }
+  }
 
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir);
-    }
-
-    fs.writeFileSync(path.join(dataDir, 'kolkata_home.json'), JSON.stringify(kolkataHome, null, 2));
-    fs.writeFileSync(path.join(dataDir, 'kolkata_sandhya.json'), JSON.stringify(kolkataSandhya, null, 2));
-    fs.writeFileSync(path.join(dataDir, 'kolkata_masik.json'), JSON.stringify(kolkataMasik, null, 2));
-    
-    fs.writeFileSync(path.join(dataDir, 'bd_home.json'), JSON.stringify(bdHome, null, 2));
-    fs.writeFileSync(path.join(dataDir, 'bd_sandhya.json'), JSON.stringify(bdSandhya, null, 2));
-    fs.writeFileSync(path.join(dataDir, 'bd_masik.json'), JSON.stringify(bdMasik, null, 2));
-
-    console.log('Scraping complete. Data saved to data/ folder.');
-  } catch (error) {
-    console.error('Fatal error in scrapeAll:', error.message);
+  console.log(`\nDone. ${successCount}/${tasks.length} files updated.`);
+  if (successCount === 0) {
+    console.error('All scraping tasks failed!');
     process.exit(1);
   }
 }
