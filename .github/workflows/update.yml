@@ -28,9 +28,12 @@ jobs:
         run: node scrape.js
 
       - name: Commit and Push Changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/argha5/ponjika-api.git
           git add data/*.json
-          git commit -m "Auto-update ponjika data [skip ci]" || echo "No changes to commit"
-          git push
+          git diff --staged --quiet || git commit -m "Auto-update ponjika data [skip ci]"
+          git push origin main || echo "Nothing to push"
