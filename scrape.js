@@ -1,4 +1,5 @@
-const axios = require('axios');
+const https = require('https');
+const http = require('http');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
@@ -10,15 +11,20 @@ const headers = {
   'Connection': 'keep-alive',
 };
 
-async function fetchHtml(url) {
-  try {
-    const response = await axios.get(url, { headers, responseType: 'arraybuffer' });
-    // Decode as utf-8 manually
-    return Buffer.from(response.data).toString('utf-8');
-  } catch (error) {
-    console.error(`Error fetching \${url}:`, error.message);
-    return null;
-  }
+function fetchHtml(url) {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https') ? https : http;
+    const req = client.get(url, { headers }, (res) => {
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        resolve(buffer.toString('utf-8'));
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(15000, () => { req.destroy(); reject(new Error('Timeout')); });
+  });
 }
 
 async function scrapeHome(url) {
