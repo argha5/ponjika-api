@@ -209,30 +209,39 @@ async function scrapeMasik(url) {
 }
 
 async function scrapeAll() {
-  console.log('Scraping Kolkata data...');
-  const kolkataHome = await scrapeHome('https://www.ponjika.com/');
-  const kolkataSandhya = await scrapeSandhya('https://www.ponjika.com/Sandhya.aspx');
-  const kolkataMasik = await scrapeMasik('https://www.ponjika.com/eMaha.aspx');
+  try {
+    console.log('Scraping Kolkata data...');
+    const kolkataHome = await scrapeHome('https://www.ponjika.com/');
+    const kolkataSandhya = await scrapeSandhya('https://www.ponjika.com/Sandhya.aspx');
+    const kolkataMasik = await scrapeMasik('https://www.ponjika.com/eMaha.aspx');
 
-  console.log('Scraping Bangladesh data...');
-  const bdHome = await scrapeHome('http://bd.ponjika.com/');
-  const bdSandhya = await scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx');
-  const bdMasik = await scrapeMasik('http://bd.ponjika.com/eMaha.aspx');
+    console.log('Scraping Bangladesh data...');
+    const bdHome = await scrapeHome('http://bd.ponjika.com/');
+    const bdSandhya = await scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx');
+    const bdMasik = await scrapeMasik('http://bd.ponjika.com/eMaha.aspx');
 
-  const dataDir = path.join(__dirname, 'data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir);
+    if (!kolkataHome && !bdHome) {
+      throw new Error('Both Kolkata and BD home scraping failed. Aborting save.');
+    }
+
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir);
+    }
+
+    fs.writeFileSync(path.join(dataDir, 'kolkata_home.json'), JSON.stringify(kolkataHome, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'kolkata_sandhya.json'), JSON.stringify(kolkataSandhya, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'kolkata_masik.json'), JSON.stringify(kolkataMasik, null, 2));
+    
+    fs.writeFileSync(path.join(dataDir, 'bd_home.json'), JSON.stringify(bdHome, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'bd_sandhya.json'), JSON.stringify(bdSandhya, null, 2));
+    fs.writeFileSync(path.join(dataDir, 'bd_masik.json'), JSON.stringify(bdMasik, null, 2));
+
+    console.log('Scraping complete. Data saved to data/ folder.');
+  } catch (error) {
+    console.error('Fatal error in scrapeAll:', error.message);
+    process.exit(1);
   }
-
-  fs.writeFileSync(path.join(dataDir, 'kolkata_home.json'), JSON.stringify(kolkataHome, null, 2));
-  fs.writeFileSync(path.join(dataDir, 'kolkata_sandhya.json'), JSON.stringify(kolkataSandhya, null, 2));
-  fs.writeFileSync(path.join(dataDir, 'kolkata_masik.json'), JSON.stringify(kolkataMasik, null, 2));
-  
-  fs.writeFileSync(path.join(dataDir, 'bd_home.json'), JSON.stringify(bdHome, null, 2));
-  fs.writeFileSync(path.join(dataDir, 'bd_sandhya.json'), JSON.stringify(bdSandhya, null, 2));
-  fs.writeFileSync(path.join(dataDir, 'bd_masik.json'), JSON.stringify(bdMasik, null, 2));
-
-  console.log('Scraping complete. Data saved to data/ folder.');
 }
 
 if (require.main === module) {
