@@ -214,6 +214,46 @@ async function scrapeMasik(url) {
   return { title, specialDates, shubhaDinerNirghanta };
 }
 
+async function scrapeBatsorik(url) {
+  // Reuse the same masik parser since structure is the same
+  const html = await fetchHtml(url);
+  if (!html) return null;
+  const $ = cheerio.load(html);
+
+  let title = 'বাৎসরিক পঞ্জিকা';
+  let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBLm');
+  if (contentSpan.length === 0) contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
+
+  let specialDates = [];
+  if (contentSpan.length > 0) {
+    let innerHtml = contentSpan.html();
+    innerHtml = innerHtml.replace(/<br\s*\/?>|<\/br>|<p>|<\/p>/gi, '\n');
+    let temp$ = cheerio.load(innerHtml);
+    let lines = temp$.text().split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    for (let line of lines) {
+      if (line.startsWith('*')) specialDates.push(line);
+    }
+  }
+
+  let shubhaDinerNirghanta = [];
+  $('table').each((i, table) => {
+    let htmlContent = $(table).parent().html() || '';
+    if (htmlContent.includes('শুভ দিনের নির্ঘন্ট') || htmlContent.includes('শুভ বিবাহ') || htmlContent.includes('ক্রয় বানিজ্য')) {
+      $(table).find('tr').each((j, row) => {
+        let rowData = [];
+        $(row).find('td, th').each((k, cell) => {
+          let t = $(cell).text().trim();
+          if (t) rowData.push(t);
+        });
+        if (rowData.length > 0) shubhaDinerNirghanta.push(rowData);
+      });
+      return false;
+    }
+  });
+
+  return { title, specialDates, shubhaDinerNirghanta };
+}
+
 async function scrapeAll() {
   const dataDir = path.join(__dirname, 'data');
   if (!fs.existsSync(dataDir)) {
@@ -221,12 +261,14 @@ async function scrapeAll() {
   }
 
   const tasks = [
-    { file: 'kolkata_home.json',    fn: () => scrapeHome('https://www.ponjika.com/') },
-    { file: 'kolkata_sandhya.json', fn: () => scrapeSandhya('https://www.ponjika.com/Sandhya.aspx') },
-    { file: 'kolkata_masik.json',   fn: () => scrapeMasik('https://www.ponjika.com/eMaha.aspx') },
-    { file: 'bd_home.json',         fn: () => scrapeHome('http://bd.ponjika.com/') },
-    { file: 'bd_sandhya.json',      fn: () => scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx') },
-    { file: 'bd_masik.json',        fn: () => scrapeMasik('http://bd.ponjika.com/eMaha.aspx') },
+    { file: 'kolkata_home.json',     fn: () => scrapeHome('https://www.ponjika.com/') },
+    { file: 'kolkata_sandhya.json',  fn: () => scrapeSandhya('https://www.ponjika.com/Sandhya.aspx') },
+    { file: 'kolkata_masik.json',    fn: () => scrapeMasik('https://www.ponjika.com/eMaha.aspx') },
+    { file: 'kolkata_batsorik.json', fn: () => scrapeBatsorik('https://www.ponjika.com/eBosor.aspx') },
+    { file: 'bd_home.json',          fn: () => scrapeHome('http://bd.ponjika.com/') },
+    { file: 'bd_sandhya.json',       fn: () => scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx') },
+    { file: 'bd_masik.json',         fn: () => scrapeMasik('http://bd.ponjika.com/eMaha.aspx') },
+    { file: 'bd_batsorik.json',      fn: () => scrapeBatsorik('http://bd.ponjika.com/eBosor.aspx') },
   ];
 
   let successCount = 0;
@@ -257,4 +299,4 @@ if (require.main === module) {
   scrapeAll();
 }
 
-module.exports = { scrapeHome, scrapeSandhya, scrapeMasik };
+module.exports = { scrapeHome, scrapeSandhya, scrapeMasik, scrapeBatsorik };
