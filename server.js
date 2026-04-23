@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const { scrapeHome, scrapeSandhya, scrapeMasik } = require('./scrape');
+const { scrapeHome, scrapeSandhya, scrapeMasik, scrapeBatsorik } = require('./scrape');
 
 const app = express();
 app.use(cors());
@@ -28,8 +28,10 @@ app.get('/api/ponjika', async (req, res) => {
       data = await scrapeSandhya(baseUrl + '/Sandhya.aspx');
     } else if (type === 'masik') {
       data = await scrapeMasik(baseUrl + '/eMaha.aspx');
+    } else if (type === 'batsorik') {
+      data = await scrapeBatsorik(baseUrl + '/eBosor.aspx');
     } else {
-      return res.status(400).json({ error: 'Invalid type parameter. Use home, sandhya, or masik.' });
+      return res.status(400).json({ error: 'Invalid type parameter. Use home, sandhya, masik, or batsorik.' });
     }
     
     if (!data) {

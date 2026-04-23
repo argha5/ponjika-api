@@ -27,6 +27,17 @@ function fetchHtml(url) {
   });
 }
 
+// Use charCodes to avoid Unicode normalization issues (U+09DF vs U+09AF+U+09BC for য়)
+function isSunLine(line) {
+  // সূ starts with char 0x9B8 (স) then 0x9C2 (ূ), and must have উ (0x0989)
+  return line.charCodeAt(0) === 0x9B8 && line.charCodeAt(1) === 0x9C2 && Array.from(line).some(c => c.charCodeAt(0) === 0x0989);
+}
+
+function isMoonLine(line) {
+  // চন starts with char 0x99A (চ) then 0x9A8 (ন), and must have উ (0x0989)
+  return line.charCodeAt(0) === 0x99A && line.charCodeAt(1) === 0x9A8 && Array.from(line).some(c => c.charCodeAt(0) === 0x0989);
+}
+
 async function scrapeHome(url) {
   const html = await fetchHtml(url);
   if (!html) return null;
@@ -35,16 +46,37 @@ async function scrapeHome(url) {
   let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
   if (contentSpan.length === 0) return null;
 
-  // Remove tables
+  // 1. Extract grahosphut table data before removing tables
+  let grahosphutLines = [];
+  contentSpan.find('table').each((i, table) => {
+    $(table).find('tr').each((j, row) => {
+      const cells = [];
+      $(row).find('td').each((k, cell) => {
+        cells.push($(cell).text().replace(/\s+/g, ' ').trim());
+      });
+      if (cells.length >= 2) {
+        const planet = cells[0];
+        if (/\u09b0\u09ac\u09bf|\u099a\u09a8\u09cd\u09a6\u09cd\u09b0|\u09ae\u0999\u09cd\u0997\u09b2|\u09ac\u09c1\u09a7|\u09ac\u09c3\u09b9\u09b8\u09cd\u09aa\u09a4\u09bf|\u09b6\u09c1\u0995\u09cd\u09b0|\u09b6\u09a8\u09bf|\u09b0\u09be\u09b9\u09c1|\u0995\u09c7\u09a4\u09c1/.test(planet)) {
+          grahosphutLines.push(cells.join(': '));
+        }
+      }
+    });
+  });
+
+  // 2. Remove tables and parse text
   contentSpan.find('table').remove();
   
-  // Replace br and p tags with newline
-  let innerHtml = contentSpan.html();
-  innerHtml = innerHtml.replace(/<br\s*\/?>|<\/br>|<p>|<\/p>/gi, '\n');
+  let innerHtml = contentSpan.html() || '';
+  innerHtml = innerHtml.replace(/<br\s*\/?>/gi, '\n');
+  innerHtml = innerHtml.replace(/<\/p>/gi, '\n');
+  innerHtml = innerHtml.replace(/<p[^>]*>/gi, '\n');
   const temp$ = cheerio.load(innerHtml);
   
-  let lines = temp$.text().split('\n').map(line => line.trim()).filter(line => line.length > 0 && line !== '|');
-  
+  let lines = temp$.text().split('\n')
+    .map(line => line.replace(/\s+/g, ' ').trim())
+    .filter(line => line.length > 2);
+
+  // 3. Parse fields
   let dateInfo = '';
   let sunInfo = '';
   let moonInfo = '';
@@ -55,48 +87,82 @@ async function scrapeHome(url) {
   let auspiciousTimes = '';
   let inauspiciousTimes = '';
   let lagna = '';
-  
   let eventLines = [];
-  
-  for (let line of lines) {
-    if (line.includes('আজ:')) {
-      dateInfo = line;
-      continue;
+  let inGrahosphutSection = false;
+  let grahosphutFromText = [];
+  let sunMoonFound = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Date
+    if (line.includes('\u0986\u099c:') || (dateInfo === '' && line.includes('\u09ac\u0999\u09cd\u0997\u09be\u09ac\u09cd\u09a6') && line.includes('\u0987\u0982\u09b0\u09c7\u099c\u09c0'))) {
+      dateInfo = line; continue;
     }
-    if (dateInfo === '' && (line.includes('বঙ্গাব্দ') || line.includes('ইংরেজী'))) {
-      dateInfo = line;
-      continue;
+    // Sun
+    if (isSunLine(line)) { sunInfo = line; sunMoonFound = true; continue; }
+    // Moon
+    if (isMoonLine(line)) { moonInfo = line; sunMoonFound = true; continue; }
+
+    if (line.includes('\u09a4\u09bf\u09a5\u09bf:')) { tithi = line; continue; }
+    if (line.includes('\u09a8\u0995\u09cd\u09b7\u09a4\u09cd\u09b0:')) { nakshatra = line; continue; }
+    if (line.includes('\u0995\u09b0\u09a3:')) { karana = line; continue; }
+    if (line.includes('\u09af\u09cb\u0997:') && !line.includes('\u0985\u09ae\u09c3\u09a4\u09af\u09cb\u0997') && !line.includes('\u09ae\u09b9\u09c7\u09a8\u09cd\u09a6\u09cd\u09b0\u09af\u09cb\u0997')) {
+      yoga = line; continue;
     }
-    if (line.includes('সূর্য উদয়:')) {
-      sunInfo = line;
-      continue;
+    if (line.includes('\u0985\u09ae\u09c3\u09a4\u09af\u09cb\u0997:') || line.includes('\u09ae\u09b9\u09c7\u09a8\u09cd\u09a6\u09cd\u09b0\u09af\u09cb\u0997:')) {
+      auspiciousTimes += (auspiciousTimes ? '\n' : '') + line; continue;
     }
-    if (line.includes('চন্দ্র উদয়:')) {
-      moonInfo = line;
-      continue;
+    if (line.includes('\u0995\u09c1\u09b2\u09bf\u0995\u09ac\u09c7\u09b2\u09be:') || line.includes('\u0995\u09c1\u09b2\u09bf\u0995\u09b0\u09be\u09a4\u09cd\u09b0\u09bf:') || line.includes('\u0995\u09be\u09b2\u09ac\u09c7\u09b2\u09be') || line.includes('\u09ac\u09be\u09b0\u09ac\u09c7\u09b2\u09be') || line.includes('\u0995\u09be\u09b2\u09b0\u09be\u09a4\u09cd\u09b0\u09bf')) {
+      inauspiciousTimes += (inauspiciousTimes ? '\n' : '') + line; continue;
     }
-    if (line.includes('তিথি:')) tithi = line;
-    else if (line.includes('নক্ষত্র:')) nakshatra = line;
-    else if (line.includes('করণ:')) karana = line;
-    else if (line.includes('যোগ:')) yoga = line;
-    else if (line.includes('অমৃতযোগ:') || line.includes('মহেন্দ্রযোগ:')) auspiciousTimes += (auspiciousTimes ? ' ' : '') + line;
-    else if (line.includes('কুলিকবেলা:') || line.includes('কালবেলা') || line.includes('বারবেলা') || line.includes('কালরাত্রি')) inauspiciousTimes += (inauspiciousTimes ? ' ' : '') + line;
-    else if (line.startsWith('লগ্ন:')) lagna = line;
-    else if (line.length > 5 && !line.includes('©') && !line.includes('গ্রহস্ফুট')) {
+    if (line.startsWith('\u09b2\u0997\u09cd\u09a8:') || (lagna === '' && line.includes('\u09b0\u09be\u09b6\u09bf') && line.includes('\u09aa\u09b0\u09cd\u09af\u09a8\u09cd\u09a4') && line.includes('\u09ae\u09c7\u09b7'))) {
+      lagna = line; continue;
+    }
+    if (line.includes('\u0997\u09cd\u09b0\u09b9\u09b8\u09cd\u09ab\u09c1\u099f')) { inGrahosphutSection = true; continue; }
+    if (inGrahosphutSection && /^(\u09b0\u09ac\u09bf|\u099a\u09a8\u09cd\u09a6\u09cd\u09b0|\u09ae\u0999\u09cd\u0997\u09b2|\u09ac\u09c1\u09a7|\u09ac\u09c3\u09b9\u09b8\u09cd\u09aa\u09a4\u09bf|\u09b6\u09c1\u0995\u09cd\u09b0|\u09b6\u09a8\u09bf|\u09b0\u09be\u09b9\u09c1|\u0995\u09c7\u09a4\u09c1):/.test(line)) {
+      grahosphutFromText.push(line); continue;
+    }
+
+    // Special events appear before sun/moon info is found
+    if (
+      !sunMoonFound && dateInfo !== '' && line !== dateInfo &&
+      line.length > 3 && !line.includes('\u00a9') &&
+      !line.includes('\u0997\u09cd\u09b0\u09b9\u09b8\u09cd\u09ab\u09c1\u099f') &&
+      !line.includes('\u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f') &&
+      !line.includes('\u09ae\u09be\u09b8\u09c7\u09b0 \u09b6\u09c1\u09ad') &&
+      !/^(\u09b0\u09ac\u09bf|\u099a\u09a8\u09cd\u09a6\u09cd\u09b0|\u09ae\u0999\u09cd\u0997\u09b2|\u09ac\u09c1\u09a7|\u09ac\u09c3\u09b9\u09b8\u09cd\u09aa\u09a4\u09bf|\u09b6\u09c1\u0995\u09cd\u09b0|\u09b6\u09a8\u09bf|\u09b0\u09be\u09b9\u09c1|\u0995\u09c7\u09a4\u09c1):/.test(line)
+    ) {
       eventLines.push(line);
     }
   }
 
-  if (auspiciousTimes.length > 150) {
-    auspiciousTimes = auspiciousTimes.split('|').join('\n').trim();
+  // 4. Fallback: if sunInfo/moonInfo still not found, scan all lines with a relaxed match
+  if (!sunInfo) {
+    for (const line of lines) {
+      if (isSunLine(line)) { sunInfo = line; break; }
+    }
   }
-  if (inauspiciousTimes.length > 150) {
-    inauspiciousTimes = inauspiciousTimes.split('।').join('\n').trim();
+  if (!moonInfo) {
+    for (const line of lines) {
+      if (isMoonLine(line)) { moonInfo = line; break; }
+    }
   }
+
+  // 5. Clean eventLines: remove sun/moon lines and noise
+  const cleanEventLines = eventLines.filter(line => {
+    if (isSunLine(line) || isMoonLine(line)) return false;
+    if (line.includes('\u09ac\u0999\u09cd\u0997\u09be\u09ac\u09cd\u09a6') || line.includes('\u0987\u0982\u09b0\u09c7\u099c\u09c0')) return false;
+    if (line.includes('\u09ae\u09be\u09b8\u09c7\u09b0') || line.includes('\u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f')) return false;
+    return line.length > 5;
+  });
+
+  // Prefer text-parsed grahosphut, fall back to table-parsed
+  const finalGrahosphut = grahosphutFromText.length > 0 ? grahosphutFromText : grahosphutLines;
 
   return {
     dateInfo,
-    events: eventLines.slice(0, 5).join('\n'),
+    events: cleanEventLines.join('\n'),
     sunInfo,
     moonInfo,
     tithi,
@@ -105,7 +171,8 @@ async function scrapeHome(url) {
     yoga,
     auspiciousTimes,
     inauspiciousTimes,
-    lagna
+    lagna,
+    grahosphut: finalGrahosphut.join('\n'),
   };
 }
 
@@ -152,7 +219,7 @@ async function scrapeSandhya(url) {
           });
           if (rowData.length > 0) tableData.push(rowData);
         });
-        return false; // break
+        return false;
       }
     });
   }
@@ -165,7 +232,7 @@ async function scrapeMasik(url) {
   if (!html) return null;
   const $ = cheerio.load(html);
 
-  let title = 'মাসিক পঞ্জিকা';
+  let title = '\u09ae\u09be\u09b8\u09bf\u0995 \u09aa\u099e\u09cd\u099c\u09bf\u0995\u09be';
   let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBLm');
   if (contentSpan.length === 0) contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
 
@@ -184,21 +251,18 @@ async function scrapeMasik(url) {
     innerHtml = innerHtml.replace(/<br\s*\/?>|<\/br>|<p>|<\/p>/gi, '\n');
     let temp$ = cheerio.load(innerHtml);
     let lines = temp$.text().split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    
     let captureDates = false;
     for (let line of lines) {
-      if (line.includes('বিশেষ দিনসমূহ')) captureDates = true;
-      else if (line.includes('শুভ দিনের নির্ঘন্ট')) captureDates = false;
-      else if (captureDates) {
-        if (line.startsWith('*')) specialDates.push(line);
-      }
+      if (line.includes('\u09ac\u09bf\u09b6\u09c7\u09b7 \u09a6\u09bf\u09a8\u09b8\u09ae\u09c2\u09b9')) captureDates = true;
+      else if (line.includes('\u09b6\u09c1\u09ad \u09a6\u09bf\u09a8\u09c7\u09b0 \u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f')) captureDates = false;
+      else if (captureDates && line.startsWith('*')) specialDates.push(line);
     }
   }
 
   let shubhaDinerNirghanta = [];
   $('table').each((i, table) => {
     let htmlContent = $(table).parent().html() || '';
-    if (htmlContent.includes('শুভ দিনের নির্ঘন্ট') || htmlContent.includes('শুভ বিবাহ') || htmlContent.includes('অতিরিক্ত বিবাহ')) {
+    if (htmlContent.includes('\u09b6\u09c1\u09ad \u09a6\u09bf\u09a8\u09c7\u09b0 \u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f') || htmlContent.includes('\u09b6\u09c1\u09ad \u09ac\u09bf\u09ac\u09be\u09b9') || htmlContent.includes('\u0985\u09a4\u09bf\u09b0\u09bf\u0995\u09cd\u09a4 \u09ac\u09bf\u09ac\u09be\u09b9')) {
       $(table).find('tr').each((j, row) => {
         let rowData = [];
         $(row).find('td, th').each((k, cell) => {
@@ -207,7 +271,7 @@ async function scrapeMasik(url) {
         });
         if (rowData.length > 0) shubhaDinerNirghanta.push(rowData);
       });
-      return false; // break
+      return false;
     }
   });
 
@@ -215,12 +279,11 @@ async function scrapeMasik(url) {
 }
 
 async function scrapeBatsorik(url) {
-  // Reuse the same masik parser since structure is the same
   const html = await fetchHtml(url);
   if (!html) return null;
   const $ = cheerio.load(html);
 
-  let title = 'বাৎসরিক পঞ্জিকা';
+  let title = '\u09ac\u09be\u09ce\u09b8\u09b0\u09bf\u0995 \u09aa\u099e\u09cd\u099c\u09bf\u0995\u09be';
   let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBLm');
   if (contentSpan.length === 0) contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
 
@@ -238,7 +301,7 @@ async function scrapeBatsorik(url) {
   let shubhaDinerNirghanta = [];
   $('table').each((i, table) => {
     let htmlContent = $(table).parent().html() || '';
-    if (htmlContent.includes('শুভ দিনের নির্ঘন্ট') || htmlContent.includes('শুভ বিবাহ') || htmlContent.includes('ক্রয় বানিজ্য')) {
+    if (htmlContent.includes('\u09b6\u09c1\u09ad \u09a6\u09bf\u09a8\u09c7\u09b0 \u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f') || htmlContent.includes('\u09b6\u09c1\u09ad \u09ac\u09bf\u09ac\u09be\u09b9') || htmlContent.includes('\u0995\u09cd\u09b0\u09af\u09bc \u09ac\u09be\u09a8\u09bf\u099c\u09cd\u09af')) {
       $(table).find('tr').each((j, row) => {
         let rowData = [];
         $(row).find('td, th').each((k, cell) => {
@@ -277,14 +340,14 @@ async function scrapeAll() {
       console.log(`Fetching: ${task.file} ...`);
       const result = await task.fn();
       if (result) {
-        fs.writeFileSync(path.join(dataDir, task.file), JSON.stringify(result, null, 2));
-        console.log(`  ✅ Saved: ${task.file}`);
+        fs.writeFileSync(path.join(dataDir, task.file), JSON.stringify(result, null, 2), 'utf8');
+        console.log(`  Saved: ${task.file}`);
         successCount++;
       } else {
-        console.warn(`  ⚠️ No data returned for ${task.file}, skipping.`);
+        console.warn(`  No data returned for ${task.file}, skipping.`);
       }
     } catch (err) {
-      console.error(`  ❌ Error for ${task.file}: ${err.message}`);
+      console.error(`  Error for ${task.file}: ${err.message}`);
     }
   }
 
