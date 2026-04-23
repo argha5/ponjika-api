@@ -46,7 +46,23 @@ async function scrapeHome(url) {
   let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
   if (contentSpan.length === 0) return null;
 
-  // 1. Extract grahosphut table data before removing tables
+  // 1. Extract the bottom home table before removing tables.
+  let homeTableData = [];
+  contentSpan.find('table').first().find('tr').each((i, row) => {
+    const rowData = [];
+    $(row).find('td, th').each((j, cell) => {
+      let cellText = $(cell).text().replace(/\s+/g, ' ').trim();
+      if (!cellText && $(cell).find('img').length > 0) {
+        cellText = '__ARROW__';
+      }
+      rowData.push(cellText);
+    });
+    if (rowData.length > 0) {
+      homeTableData.push(rowData);
+    }
+  });
+
+  // 2. Extract grahosphut table data before removing tables
   let grahosphutLines = [];
   contentSpan.find('table').each((i, table) => {
     $(table).find('tr').each((j, row) => {
@@ -63,7 +79,7 @@ async function scrapeHome(url) {
     });
   });
 
-  // 2. Remove tables and parse text
+  // 3. Remove tables and parse text
   contentSpan.find('table').remove();
   
   let innerHtml = contentSpan.html() || '';
@@ -76,7 +92,7 @@ async function scrapeHome(url) {
     .map(line => line.replace(/\s+/g, ' ').trim())
     .filter(line => line.length > 2);
 
-  // 3. Parse fields
+  // 4. Parse fields
   let dateInfo = '';
   let sunInfo = '';
   let moonInfo = '';
@@ -137,7 +153,7 @@ async function scrapeHome(url) {
     }
   }
 
-  // 4. Fallback: if sunInfo/moonInfo still not found, scan all lines with a relaxed match
+  // 5. Fallback: if sunInfo/moonInfo still not found, scan all lines with a relaxed match
   if (!sunInfo) {
     for (const line of lines) {
       if (isSunLine(line)) { sunInfo = line; break; }
@@ -149,7 +165,7 @@ async function scrapeHome(url) {
     }
   }
 
-  // 5. Clean eventLines: remove sun/moon lines and noise
+  // 6. Clean eventLines: remove sun/moon lines and noise
   const cleanEventLines = eventLines.filter(line => {
     if (isSunLine(line) || isMoonLine(line)) return false;
     if (line.includes('\u09ac\u0999\u09cd\u0997\u09be\u09ac\u09cd\u09a6') || line.includes('\u0987\u0982\u09b0\u09c7\u099c\u09c0')) return false;
@@ -163,6 +179,7 @@ async function scrapeHome(url) {
   return {
     dateInfo,
     events: cleanEventLines.join('\n'),
+    homeTableData,
     sunInfo,
     moonInfo,
     tithi,
