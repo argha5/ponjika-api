@@ -38,6 +38,28 @@ function isMoonLine(line) {
   return line.charCodeAt(0) === 0x99A && line.charCodeAt(1) === 0x9A8 && Array.from(line).some(c => c.charCodeAt(0) === 0x0989);
 }
 
+function cleanText(value) {
+  return (value || '').replace(/\s+/g, ' ').replace(/\u00a0/g, ' ').trim();
+}
+
+function extractTableRows($, table) {
+  const rows = [];
+  $(table).find('tr').each((i, row) => {
+    const rowData = [];
+    $(row).find('td, th').each((j, cell) => {
+      let cellText = cleanText($(cell).text());
+      if (!cellText && $(cell).find('img').length > 0) {
+        cellText = '__ARROW__';
+      }
+      rowData.push(cellText);
+    });
+    if (rowData.length > 0) {
+      rows.push(rowData);
+    }
+  });
+  return rows;
+}
+
 async function scrapeHome(url) {
   const html = await fetchHtml(url);
   if (!html) return null;
@@ -45,22 +67,21 @@ async function scrapeHome(url) {
   
   let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
   if (contentSpan.length === 0) return null;
+  const pageTitle = cleanText($('#latest-post h1').first().text());
+  const pageSubtitle = cleanText($('#latest-post h2').first().text());
+  const siteTitle = cleanText($('#logo h1').first().text());
+  const siteSubtitle = cleanText($('#logo p').first().text());
+  const topMenuItems = $('#menu li a').map((_, el) => cleanText($(el).text())).get().filter(Boolean);
+  const sideMenuItems = $('#rightmenue li a').map((_, el) => cleanText($(el).text())).get().filter(Boolean);
+  const footerText = cleanText($('#footer #legal').text());
+  const monthlyLabel = cleanText($('#ctl00_ContentPlaceHolder1_LblShubha').text());
+  const monthlyTitle = monthlyLabel
+    ? `${monthlyLabel} মাসের শুভ দিনের নির্ঘন্ট:`
+    : cleanText($('#latest-post strong').last().text());
+  const monthlyTableData = extractTableRows($, $('#ctl00_ContentPlaceHolder1_GridView1').first());
 
   // 1. Extract the bottom home table before removing tables.
-  let homeTableData = [];
-  contentSpan.find('table').first().find('tr').each((i, row) => {
-    const rowData = [];
-    $(row).find('td, th').each((j, cell) => {
-      let cellText = $(cell).text().replace(/\s+/g, ' ').trim();
-      if (!cellText && $(cell).find('img').length > 0) {
-        cellText = '__ARROW__';
-      }
-      rowData.push(cellText);
-    });
-    if (rowData.length > 0) {
-      homeTableData.push(rowData);
-    }
-  });
+  const homeTableData = extractTableRows($, contentSpan.find('table').first());
 
   // 2. Extract grahosphut table data before removing tables
   let grahosphutLines = [];
@@ -177,9 +198,17 @@ async function scrapeHome(url) {
   const finalGrahosphut = grahosphutFromText.length > 0 ? grahosphutFromText : grahosphutLines;
 
   return {
+    siteTitle,
+    siteSubtitle,
+    topMenuItems,
+    sideMenuItems,
+    pageTitle,
+    pageSubtitle,
     dateInfo,
     events: cleanEventLines.join('\n'),
     homeTableData,
+    monthlyTitle,
+    monthlyTableData,
     sunInfo,
     moonInfo,
     tithi,
@@ -190,6 +219,7 @@ async function scrapeHome(url) {
     inauspiciousTimes,
     lagna,
     grahosphut: finalGrahosphut.join('\n'),
+    footerText,
   };
 }
 
