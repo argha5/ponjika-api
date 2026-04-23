@@ -322,6 +322,38 @@ async function scrapeMasik(url) {
     }
   });
 
+  // The upstream monthly page is flaky and sometimes returns an exception page.
+  // When that happens, fall back to the monthly schedule already present on the home page
+  // so the app still gets the structure it expects.
+  if (specialDates.length === 0) {
+    const extractedFromRows = shubhaDinerNirghanta
+      .filter((row) => row.length === 1 && row[0].includes('*'))
+      .flatMap((row) => row[0].split('\n'))
+      .map((line) => line.replace(/^\*/, '').trim())
+      .filter(Boolean);
+    if (extractedFromRows.length > 0) {
+      specialDates = extractedFromRows;
+    }
+  }
+
+  const hasUsefulMonthlyRows = shubhaDinerNirghanta.some((row) => row.length === 2);
+  if (!hasUsefulMonthlyRows) {
+    const homeUrl = url.includes('bd.ponjika.com') ? 'http://bd.ponjika.com/' : 'https://www.ponjika.com/';
+    try {
+      const homeData = await scrapeHome(homeUrl);
+      if (homeData) {
+        if (homeData.monthlyTitle) title = homeData.monthlyTitle;
+        if (Array.isArray(homeData.monthlyTableData) && homeData.monthlyTableData.length > 0) {
+          shubhaDinerNirghanta = homeData.monthlyTableData
+            .filter((row) => Array.isArray(row) && row.length >= 2)
+            .map((row) => row.slice(0, 2));
+        }
+      }
+    } catch (err) {
+      console.warn(`  Monthly fallback from home failed: ${err.message}`);
+    }
+  }
+
   return { title, specialDates, shubhaDinerNirghanta };
 }
 
