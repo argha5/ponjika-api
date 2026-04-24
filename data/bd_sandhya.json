@@ -81,5 +81,17 @@
       "রাত্র ১১:৩৪:১০",
       "রাত্র ১২:১৮:৪৭"
     ]
-  ]
+  ],
+  "meta": {
+    "region": "bangladesh",
+    "screen": "sandhya",
+    "checkedOn": "2026-04-25",
+    "contentHash": "f41ca8d88f71ec43b008e42b441a841c3bd96e023c89191488fee6cb372ed5ee",
+    "previousContentHash": "f41ca8d88f71ec43b008e42b441a841c3bd96e023c89191488fee6cb372ed5ee",
+    "previousCheckedOn": "2026-04-25",
+    "contentLastChangedOn": "2026-04-25",
+    "isUpdatedForToday": true,
+    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousDay": false
+  }
 }

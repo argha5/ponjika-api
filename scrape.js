@@ -3,6 +3,7 @@ const http = require('http');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const headers = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -40,6 +41,81 @@ function isMoonLine(line) {
 
 function cleanText(value) {
   return (value || '').replace(/\s+/g, ' ').replace(/\u00a0/g, ' ').trim();
+}
+
+function getRegionTimeZone(region) {
+  return region === 'bangladesh' ? 'Asia/Dhaka' : 'Asia/Kolkata';
+}
+
+function getRegionDate(region) {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: getRegionTimeZone(region),
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(new Date());
+}
+
+function stableSerialize(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableSerialize).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableSerialize(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function computeContentHash(payload) {
+  return crypto.createHash('sha256').update(stableSerialize(payload)).digest('hex');
+}
+
+function enrichWithMeta(payload, options) {
+  const { filePath, region, screen } = options;
+  const checkedOn = getRegionDate(region);
+  const payloadWithoutMeta = { ...payload };
+  delete payloadWithoutMeta.meta;
+
+  const contentHash = computeContentHash(payloadWithoutMeta);
+
+  let previousMeta = null;
+  try {
+    if (fs.existsSync(filePath)) {
+      const previousPayload = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      previousMeta = previousPayload && typeof previousPayload === 'object' ? previousPayload.meta || null : null;
+    }
+  } catch (_) {
+    previousMeta = null;
+  }
+
+  const previousHash = previousMeta?.contentHash || null;
+  const previousCheckedOn = previousMeta?.checkedOn || null;
+  const previousLastChangedOn = previousMeta?.contentLastChangedOn || previousCheckedOn || null;
+  const contentLastChangedOn =
+    previousHash && previousHash === contentHash
+      ? previousLastChangedOn || checkedOn
+      : checkedOn;
+
+  return {
+    ...payloadWithoutMeta,
+    meta: {
+      region,
+      screen,
+      checkedOn,
+      contentHash,
+      previousContentHash: previousHash,
+      previousCheckedOn,
+      contentLastChangedOn,
+      isUpdatedForToday: contentLastChangedOn === checkedOn,
+      isSameAsPreviousSnapshot: previousHash === contentHash,
+      isSameAsPreviousDay:
+        Boolean(previousHash) && previousHash === contentHash && previousCheckedOn !== null && previousCheckedOn !== checkedOn,
+    },
+  };
 }
 
 function extractTableRows($, table) {
@@ -403,14 +479,14 @@ async function scrapeAll() {
   }
 
   const tasks = [
-    { file: 'kolkata_home.json',     fn: () => scrapeHome('https://www.ponjika.com/') },
-    { file: 'kolkata_sandhya.json',  fn: () => scrapeSandhya('https://www.ponjika.com/Sandhya.aspx') },
-    { file: 'kolkata_masik.json',    fn: () => scrapeMasik('https://www.ponjika.com/eMaha.aspx') },
-    { file: 'kolkata_batsorik.json', fn: () => scrapeBatsorik('https://www.ponjika.com/eBosor.aspx') },
-    { file: 'bd_home.json',          fn: () => scrapeHome('http://bd.ponjika.com/') },
-    { file: 'bd_sandhya.json',       fn: () => scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx') },
-    { file: 'bd_masik.json',         fn: () => scrapeMasik('http://bd.ponjika.com/eMaha.aspx') },
-    { file: 'bd_batsorik.json',      fn: () => scrapeBatsorik('http://bd.ponjika.com/eBosor.aspx') },
+    { file: 'kolkata_home.json', region: 'kolkata', screen: 'home', fn: () => scrapeHome('https://www.ponjika.com/') },
+    { file: 'kolkata_sandhya.json', region: 'kolkata', screen: 'sandhya', fn: () => scrapeSandhya('https://www.ponjika.com/Sandhya.aspx') },
+    { file: 'kolkata_masik.json', region: 'kolkata', screen: 'masik', fn: () => scrapeMasik('https://www.ponjika.com/eMaha.aspx') },
+    { file: 'kolkata_batsorik.json', region: 'kolkata', screen: 'batsorik', fn: () => scrapeBatsorik('https://www.ponjika.com/eBosor.aspx') },
+    { file: 'bd_home.json', region: 'bangladesh', screen: 'home', fn: () => scrapeHome('http://bd.ponjika.com/') },
+    { file: 'bd_sandhya.json', region: 'bangladesh', screen: 'sandhya', fn: () => scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx') },
+    { file: 'bd_masik.json', region: 'bangladesh', screen: 'masik', fn: () => scrapeMasik('http://bd.ponjika.com/eMaha.aspx') },
+    { file: 'bd_batsorik.json', region: 'bangladesh', screen: 'batsorik', fn: () => scrapeBatsorik('http://bd.ponjika.com/eBosor.aspx') },
   ];
 
   let successCount = 0;
@@ -419,8 +495,17 @@ async function scrapeAll() {
       console.log(`Fetching: ${task.file} ...`);
       const result = await task.fn();
       if (result) {
-        fs.writeFileSync(path.join(dataDir, task.file), JSON.stringify(result, null, 2), 'utf8');
+        const filePath = path.join(dataDir, task.file);
+        const enrichedResult = enrichWithMeta(result, {
+          filePath,
+          region: task.region,
+          screen: task.screen,
+        });
+        fs.writeFileSync(filePath, JSON.stringify(enrichedResult, null, 2), 'utf8');
         console.log(`  Saved: ${task.file}`);
+        console.log(
+          `  Hash: ${enrichedResult.meta.contentHash.slice(0, 12)} | Updated today: ${enrichedResult.meta.isUpdatedForToday}`
+        );
         successCount++;
       } else {
         console.warn(`  No data returned for ${task.file}, skipping.`);
@@ -441,4 +526,10 @@ if (require.main === module) {
   scrapeAll();
 }
 
-module.exports = { scrapeHome, scrapeSandhya, scrapeMasik, scrapeBatsorik };
+module.exports = {
+  scrapeHome,
+  scrapeSandhya,
+  scrapeMasik,
+  scrapeBatsorik,
+  enrichWithMeta,
+};

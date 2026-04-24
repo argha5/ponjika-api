@@ -69,5 +69,17 @@
       "বাহন ক্রয়-বিক্রয় ও কম্পিউটার নির্মান",
       "৬, ৯, ১০, ১৫, ১৭, ২০, ২২, ২৭, ৩০"
     ]
-  ]
+  ],
+  "meta": {
+    "region": "kolkata",
+    "screen": "masik",
+    "checkedOn": "2026-04-25",
+    "contentHash": "104ce5d92a74567b0143dc92edacdf1fe479e6052cf69d810ebf5022d953fd2b",
+    "previousContentHash": "104ce5d92a74567b0143dc92edacdf1fe479e6052cf69d810ebf5022d953fd2b",
+    "previousCheckedOn": "2026-04-25",
+    "contentLastChangedOn": "2026-04-25",
+    "isUpdatedForToday": true,
+    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousDay": false
+  }
 }

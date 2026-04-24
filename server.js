@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
-const { scrapeHome, scrapeSandhya, scrapeMasik, scrapeBatsorik } = require('./scrape');
+const { scrapeHome, scrapeSandhya, scrapeMasik, scrapeBatsorik, enrichWithMeta } = require('./scrape');
 
 const app = express();
 app.use(cors());
@@ -22,14 +21,19 @@ app.get('/api/ponjika', async (req, res) => {
   
   try {
     let data;
+    let fileName;
     if (type === 'home') {
       data = await scrapeHome(region === 'bangladesh' ? baseUrl + '/' : baseUrl + '/');
+      fileName = region === 'bangladesh' ? 'bd_home.json' : 'kolkata_home.json';
     } else if (type === 'sandhya') {
       data = await scrapeSandhya(baseUrl + '/Sandhya.aspx');
+      fileName = region === 'bangladesh' ? 'bd_sandhya.json' : 'kolkata_sandhya.json';
     } else if (type === 'masik') {
       data = await scrapeMasik(baseUrl + '/eMaha.aspx');
+      fileName = region === 'bangladesh' ? 'bd_masik.json' : 'kolkata_masik.json';
     } else if (type === 'batsorik') {
       data = await scrapeBatsorik(baseUrl + '/eBosor.aspx');
+      fileName = region === 'bangladesh' ? 'bd_batsorik.json' : 'kolkata_batsorik.json';
     } else {
       return res.status(400).json({ error: 'Invalid type parameter. Use home, sandhya, masik, or batsorik.' });
     }
@@ -38,7 +42,13 @@ app.get('/api/ponjika', async (req, res) => {
       return res.status(500).json({ error: 'Failed to scrape data.' });
     }
     
-    res.json(data);
+    res.json(
+      enrichWithMeta(data, {
+        filePath: path.join(dataDir, fileName),
+        region,
+        screen: type,
+      })
+    );
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
