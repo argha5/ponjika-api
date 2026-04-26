@@ -148,13 +148,13 @@
   "meta": {
     "region": "bangladesh",
     "screen": "batsorik",
-    "checkedOn": "2026-04-26",
+    "checkedOn": "2026-04-27",
     "contentHash": "941987289000589cd0493d6a924cf52c091796ccd2f35ceedece5ffa1b782d2b",
     "previousContentHash": "941987289000589cd0493d6a924cf52c091796ccd2f35ceedece5ffa1b782d2b",
     "previousCheckedOn": "2026-04-26",
     "contentLastChangedOn": "2026-04-25",
     "isUpdatedForToday": false,
     "isSameAsPreviousSnapshot": true,
-    "isSameAsPreviousDay": false
+    "isSameAsPreviousDay": true
   }
 }
