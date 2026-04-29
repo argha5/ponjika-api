@@ -1,17 +1,6 @@
 {
   "title": "বৈশাখ মাসের শুভ দিনের নির্ঘন্ট:",
-  "specialDates": [
-    "৬- চন্দনযাত্রা, শ্রীপরশুরাম জয়ন্তী, অক্ষয় তৃতীয়া",
-    "৯- শ্রীগঙ্গার আবির্ভাব",
-    "১১- শ্রীসীতা নবমী/শ্রীশ্রিজাহ্নবী গোস্বামীনীর আবির্ভাব/শ্রীশ্রীজগদ্বন্ধুসুন্দরের আবির্ভাব",
-    "১৩- শ্রীমোহিনী একাদশী",
-    "১৪- পুরুষোত্তম/রুক্মিনী/পিপিতকী দ্বাদশী",
-    "১৬- শ্রীনরসিংহ চর্তুদশী",
-    "১৭-শ্রীকুর্ম জয়ন্তী, বৈশাখী পূর্ণিমা, শ্রীবুদ্ধ পূর্ণিমা (ভগবান বুদ্ধের আর্বিভাব তিথি), শ্রীকৃষ্ণের ফুলদোল, গন্ধেশ্বরী পুজা",
-    "১৭-মে দিবস",
-    "২৬- ত্রিলোচনাষ্টমী",
-    "২৯- শ্রীঅপরা/জলক্রীড়া একাদশী"
-  ],
+  "specialDates": [],
   "shubhaDinerNirghanta": [
     [
       "শুভ বিবাহ",
@@ -74,12 +63,12 @@
     "region": "kolkata",
     "screen": "masik",
     "checkedOn": "2026-04-29",
-    "contentHash": "104ce5d92a74567b0143dc92edacdf1fe479e6052cf69d810ebf5022d953fd2b",
+    "contentHash": "7cf1670c027e4532851770fe807a9daed82a92cb6ecec15853e0ef7c1c952a73",
     "previousContentHash": "104ce5d92a74567b0143dc92edacdf1fe479e6052cf69d810ebf5022d953fd2b",
     "previousCheckedOn": "2026-04-29",
-    "contentLastChangedOn": "2026-04-25",
-    "isUpdatedForToday": false,
-    "isSameAsPreviousSnapshot": true,
+    "contentLastChangedOn": "2026-04-29",
+    "isUpdatedForToday": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
