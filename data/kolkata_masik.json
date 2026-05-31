@@ -67,13 +67,13 @@
   "meta": {
     "region": "kolkata",
     "screen": "masik",
-    "checkedOn": "2026-05-31",
+    "checkedOn": "2026-06-01",
     "contentHash": "7853b1d411a414b91387fda435386685d28fd743167713ed079576fe2ba63718",
-    "previousContentHash": "84e67c7dd850b3df7ef340dd7e13223ddb035e74d8f92e0c02f90d984b2d3ff2",
+    "previousContentHash": "7853b1d411a414b91387fda435386685d28fd743167713ed079576fe2ba63718",
     "previousCheckedOn": "2026-05-31",
     "contentLastChangedOn": "2026-05-31",
-    "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": false,
-    "isSameAsPreviousDay": false
+    "isUpdatedForToday": false,
+    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousDay": true
   }
 }
