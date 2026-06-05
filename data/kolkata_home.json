@@ -161,11 +161,11 @@
     "screen": "home",
     "checkedOn": "2026-06-06",
     "contentHash": "4730d1e2f04c437dc58414a3606d5258192497dae04dfd3cf21b7c708d6ef019",
-    "previousContentHash": "6321ec0f87e3b35afad359cdbb2f1394f206e7a3aa1c8ff0be4918e2eac600c7",
-    "previousCheckedOn": "2026-06-05",
+    "previousContentHash": "4730d1e2f04c437dc58414a3606d5258192497dae04dfd3cf21b7c708d6ef019",
+    "previousCheckedOn": "2026-06-06",
     "contentLastChangedOn": "2026-06-06",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": false,
+    "isSameAsPreviousSnapshot": true,
     "isSameAsPreviousDay": false
   }
 }
