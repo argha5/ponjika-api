@@ -73,10 +73,10 @@
     "checkedOn": "2026-06-26",
     "contentHash": "f995e94cfabfe9948644e2799f35492a2de08f0b61efa568bbe3ed92ca6774f1",
     "previousContentHash": "f995e94cfabfe9948644e2799f35492a2de08f0b61efa568bbe3ed92ca6774f1",
-    "previousCheckedOn": "2026-06-25",
+    "previousCheckedOn": "2026-06-26",
     "contentLastChangedOn": "2026-06-16",
     "isUpdatedForToday": false,
     "isSameAsPreviousSnapshot": true,
-    "isSameAsPreviousDay": true
+    "isSameAsPreviousDay": false
   }
 }
