@@ -154,11 +154,11 @@
     "screen": "home",
     "checkedOn": "2026-06-27",
     "contentHash": "7cd4bb8e6e943c10c05e0d4cd7fd9d889c63168039423373000f0ad69ecff9b9",
-    "previousContentHash": "9d0da8ea09272ded2db23510df016f3ce503a6e4722b460ae74e424838ce7b74",
+    "previousContentHash": "7cd4bb8e6e943c10c05e0d4cd7fd9d889c63168039423373000f0ad69ecff9b9",
     "previousCheckedOn": "2026-06-27",
     "contentLastChangedOn": "2026-06-27",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": false,
+    "isSameAsPreviousSnapshot": true,
     "isSameAsPreviousDay": false
   }
 }
