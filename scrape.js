@@ -472,6 +472,91 @@ async function scrapeBatsorik(url) {
   return { title, specialDates, shubhaDinerNirghanta };
 }
 
+async function scrapeRashifal(url) {
+  const html = await fetchHtml(url);
+  if (!html) return null;
+  const $ = cheerio.load(html);
+
+  const container = $('.ui-large-content-box');
+  if (container.length === 0) return null;
+
+  const header = cleanText(container.find('.ui-large-hdg').text());
+  
+  let prediction = '';
+  let luckyNumber = '';
+  let luckyColor = '';
+  let remedy = '';
+
+  container.find('.ui-large-content').each((i, el) => {
+    const text = $(el).text().trim();
+    if (text.includes('অ্যাপ্লিকেশন') || text.includes('ডাউনলোড')) {
+      return;
+    }
+    if (text.startsWith('শুভ সংখ্যা') || text.startsWith('শুভসংখ্যা')) {
+      luckyNumber = text;
+    } else if (text.startsWith('শুভ রঙ') || text.startsWith('শুভ  রং') || text.startsWith('শুভ রং')) {
+      luckyColor = text;
+    } else if (text.startsWith('প্রতিকার')) {
+      remedy = text;
+    } else if (prediction === '' && $(el).hasClass('text-justify')) {
+      prediction = text;
+    }
+  });
+
+  const ratings = {};
+  container.find('.show-grid .col-sm-4').each((i, el) => {
+    const label = $(el).find('b').text().replace(':', '').trim();
+    if (label) {
+      const stars = $(el).find('img[src*="star2"]').length;
+      ratings[label] = stars;
+    }
+  });
+
+  return {
+    header,
+    prediction,
+    luckyNumber,
+    luckyColor,
+    remedy,
+    ratings,
+  };
+}
+
+async function scrapeRashifalAll() {
+  const signs = [
+    { id: 'mesh', name: 'মেষ (Aries)', url: 'https://www.astrosage.com/bengali/rashifal/mesh-rashifal.asp' },
+    { id: 'brishabh', name: 'বৃষভ (Taurus)', url: 'https://www.astrosage.com/bengali/rashifal/brishabh-rashifal.asp' },
+    { id: 'mithun', name: 'মিথুন (Gemini)', url: 'https://www.astrosage.com/bengali/rashifal/mithun-rashifal.asp' },
+    { id: 'karkat', name: 'কর্কট (Cancer)', url: 'https://www.astrosage.com/bengali/rashifal/karkat-rashifal.asp' },
+    { id: 'singha', name: 'সিংহ (Leo)', url: 'https://www.astrosage.com/bengali/rashifal/singha-rashifal.asp' },
+    { id: 'kanya', name: 'কন্যা (Virgo)', url: 'https://www.astrosage.com/bengali/rashifal/kanya-rashifal.asp' },
+    { id: 'tula', name: 'তুলা (Libra)', url: 'https://www.astrosage.com/bengali/rashifal/tula-rashifal.asp' },
+    { id: 'brishchik', name: 'বৃশ্চিক (Scorpio)', url: 'https://www.astrosage.com/bengali/rashifal/brishchik-rashifal.asp' },
+    { id: 'dhanu', name: 'ধনু (Sagittarius)', url: 'https://www.astrosage.com/bengali/rashifal/dhanu-rashifal.asp' },
+    { id: 'makar', name: 'মকর (Capricorn)', url: 'https://www.astrosage.com/bengali/rashifal/makar-rashifal.asp' },
+    { id: 'kumbha', name: 'কুম্ভ (Aquarius)', url: 'https://www.astrosage.com/bengali/rashifal/kumbha-rashifal.asp' },
+    { id: 'meen', name: 'মীন (Pisces)', url: 'https://www.astrosage.com/bengali/rashifal/meen-rashifal.asp' }
+  ];
+
+  const horoscopes = {};
+  for (const sign of signs) {
+    try {
+      console.log(`  Scraping rashifal for ${sign.name} ...`);
+      const data = await scrapeRashifal(sign.url);
+      if (data) {
+        horoscopes[sign.id] = {
+          name: sign.name,
+          ...data
+        };
+      }
+    } catch (err) {
+      console.error(`  Failed to scrape rashifal for ${sign.id}: ${err.message}`);
+    }
+  }
+
+  return { horoscopes };
+}
+
 async function scrapeAll() {
   const dataDir = path.join(__dirname, 'data');
   if (!fs.existsSync(dataDir)) {
@@ -487,6 +572,7 @@ async function scrapeAll() {
     { file: 'bd_sandhya.json', region: 'bangladesh', screen: 'sandhya', fn: () => scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx') },
     { file: 'bd_masik.json', region: 'bangladesh', screen: 'masik', fn: () => scrapeMasik('http://bd.ponjika.com/eMaha.aspx') },
     { file: 'bd_batsorik.json', region: 'bangladesh', screen: 'batsorik', fn: () => scrapeBatsorik('http://bd.ponjika.com/eBosor.aspx') },
+    { file: 'rashifal.json', region: 'global', screen: 'rashifal', fn: () => scrapeRashifalAll() },
   ];
 
   let successCount = 0;
@@ -531,5 +617,6 @@ module.exports = {
   scrapeSandhya,
   scrapeMasik,
   scrapeBatsorik,
+  scrapeRashifalAll,
   enrichWithMeta,
 };
