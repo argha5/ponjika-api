@@ -1,14 +1,6 @@
 {
   "title": "আষাঢ় মাসের শুভ দিনের নির্ঘন্ট:",
-  "specialDates": [
-    "২- রম্ভা তৃতীয়া",
-    "৩- উমা চতুর্থী",
-    "১০- পাণ্ডবা নির্জলা একাদশী",
-    "১৪- জগন্নাথ প্রভুর স্নান যাত্রা",
-    "২৫- শ্রীযোগিনী একাদশী",
-    "৩০- গুন্ডিচা মার্জনা",
-    "৩১- আজ শ্রীশ্রীজগন্নাথ প্রভুর রথযাত্রা।"
-  ],
+  "specialDates": [],
   "shubhaDinerNirghanta": [
     [
       "শুভ বিবাহ",
@@ -70,13 +62,13 @@
   "meta": {
     "region": "bangladesh",
     "screen": "masik",
-    "checkedOn": "2026-07-08",
-    "contentHash": "f995e94cfabfe9948644e2799f35492a2de08f0b61efa568bbe3ed92ca6774f1",
+    "checkedOn": "2026-07-09",
+    "contentHash": "8dd033071c864115ac6a25ca375c52cb483a1b716029334e2a629967174f838a",
     "previousContentHash": "f995e94cfabfe9948644e2799f35492a2de08f0b61efa568bbe3ed92ca6774f1",
     "previousCheckedOn": "2026-07-08",
-    "contentLastChangedOn": "2026-06-16",
-    "isUpdatedForToday": false,
-    "isSameAsPreviousSnapshot": true,
+    "contentLastChangedOn": "2026-07-09",
+    "isUpdatedForToday": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
