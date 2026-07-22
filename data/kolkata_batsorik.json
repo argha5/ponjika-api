@@ -148,13 +148,13 @@
   "meta": {
     "region": "kolkata",
     "screen": "batsorik",
-    "checkedOn": "2026-07-22",
+    "checkedOn": "2026-07-23",
     "contentHash": "941987289000589cd0493d6a924cf52c091796ccd2f35ceedece5ffa1b782d2b",
     "previousContentHash": "941987289000589cd0493d6a924cf52c091796ccd2f35ceedece5ffa1b782d2b",
     "previousCheckedOn": "2026-07-22",
     "contentLastChangedOn": "2026-07-22",
-    "isUpdatedForToday": true,
+    "isUpdatedForToday": false,
     "isSameAsPreviousSnapshot": true,
-    "isSameAsPreviousDay": false
+    "isSameAsPreviousDay": true
   }
 }
