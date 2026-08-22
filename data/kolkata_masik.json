@@ -1,6 +1,13 @@
 {
   "title": "ভাদ্র মাসের শুভ দিনের নির্ঘন্ট:",
-  "specialDates": [],
+  "specialDates": [
+    "৬- শ্রীপবিত্রারোপনী/পুত্রদা একাদশী/শ্রীশ্রীরাধা-কৃষ্ণের ঝুলন যাত্রা শুরু",
+    "১১- রাখী",
+    "১৮-ভগবান শ্রীশ্রীকৃষ্ণের শুভ জন্মাষ্টমী/শ্রীশ্রীলোকনাথ বাবার আবির্ভাব",
+    "১৯- গোকুলাষ্টমী, নন্দোৎসব",
+    "২১- শ্রীঅন্নদা/অজ একাদশী",
+    "২৯- শ্রীগনেশ চতুর্থী/সিদ্ধিবিনায়েক পূজা"
+  ],
   "shubhaDinerNirghanta": [
     [
       "শুভ বিবাহ",
@@ -63,8 +70,8 @@
     "region": "kolkata",
     "screen": "masik",
     "checkedOn": "2026-08-22",
-    "contentHash": "3357f1e08e1557e301a513d9788e87d954e068729d5d5bb53e588087cd47f49a",
-    "previousContentHash": "1328910b1e92f44f8d8943d034b2483a4b2d12fe553e0de190e97d40c14817f4",
+    "contentHash": "1328910b1e92f44f8d8943d034b2483a4b2d12fe553e0de190e97d40c14817f4",
+    "previousContentHash": "3357f1e08e1557e301a513d9788e87d954e068729d5d5bb53e588087cd47f49a",
     "previousCheckedOn": "2026-08-22",
     "contentLastChangedOn": "2026-08-22",
     "isUpdatedForToday": true,
