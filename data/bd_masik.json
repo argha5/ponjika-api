@@ -72,10 +72,10 @@
     "checkedOn": "2026-08-30",
     "contentHash": "1328910b1e92f44f8d8943d034b2483a4b2d12fe553e0de190e97d40c14817f4",
     "previousContentHash": "1328910b1e92f44f8d8943d034b2483a4b2d12fe553e0de190e97d40c14817f4",
-    "previousCheckedOn": "2026-08-29",
+    "previousCheckedOn": "2026-08-30",
     "contentLastChangedOn": "2026-08-24",
     "isUpdatedForToday": false,
     "isSameAsPreviousSnapshot": true,
-    "isSameAsPreviousDay": true
+    "isSameAsPreviousDay": false
   }
 }
