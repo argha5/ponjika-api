@@ -1,18 +1,6 @@
 {
   "title": "আশ্বিন মাসের শুভ দিনের নির্ঘন্ট:",
-  "specialDates": [
-    "২- শ্রীশ্রীরাধাষ্টমী",
-    "৩-সৎসংঘেরপ্রতিষ্ঠাতা শ্রীশ্রীঅনুকুল ঠাকুরের আবির্ভাব",
-    "৫- শ্রীপাশ্বৈর্কাদশী/পরিবর্তিনী একাদশী | হৈক্রু হিদোংবা (মণিপুর)",
-    "৬- শ্রীবামন জয়ন্তী",
-    "১০- তর্পন, পিতৃপক্ষ",
-    "১৫-ভারত: মহাত্মাগান্ধীর জন্মদিবস",
-    "১৯- শ্রীইন্দিরা একাদশী",
-    "২৩- মহালয়া/তর্পন সমাপন",
-    "২৯- শ্রীশ্রীদূর্গাপুজার বেলষষ্ঠী",
-    "৩০- গতপূজা / বর",
-    "৩১- শ্রীশ্রীদূর্গাষ্টমী/মহা অষ্টমী"
-  ],
+  "specialDates": [],
   "shubhaDinerNirghanta": [
     [
       "শুভ বিবাহ",
@@ -75,12 +63,12 @@
     "region": "kolkata",
     "screen": "masik",
     "checkedOn": "2026-09-25",
-    "contentHash": "5a19129cfb2fdde8dd1f2b93e5007f625f2d3aeaaa7a58e29bf91fcfcf56973d",
+    "contentHash": "b88f5ae9c819210de503717b13fb9c6767a2d4eb9a977823a86ac1d6ac0365da",
     "previousContentHash": "5a19129cfb2fdde8dd1f2b93e5007f625f2d3aeaaa7a58e29bf91fcfcf56973d",
     "previousCheckedOn": "2026-09-25",
-    "contentLastChangedOn": "2026-09-20",
-    "isUpdatedForToday": false,
-    "isSameAsPreviousSnapshot": true,
+    "contentLastChangedOn": "2026-09-25",
+    "isUpdatedForToday": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
