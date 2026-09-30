@@ -139,7 +139,7 @@
     ]
   ],
   "sunInfo": "সূর্য উদয়: সকাল ০৫:৩০:১৫ এবং অস্ত: বিকাল ০৫:২১:৪২।",
-  "moonInfo": "চন্দ্র উদয়: সন্ধ্যা ০৭:৫৩:৫৭(৩০) এবং অস্ত: সকাল ০৯:৫৮:৫৬(১)।",
+  "moonInfo": "চন্দ্র উদয়: রাত্রি ০৮:৪৯:২১(১) এবং অস্ত: সকাল ১১:০৪:৩৬(২)।",
   "tithi": "কৃষ্ণ পক্ষ |তিথি: পঞ্চমী (পূর্ণা) বিকাল ঘ ০২:৩৯:২০ দং ২২/৫১/৪০ পর্যন্ত",
   "nakshatra": "নক্ষত্র: রোহিণী কাল ঘ ০৭:২৭:৪২ দং ৪/৫১/৪৫ পর্যন্ত পরে মৃগশিরা",
   "karana": "করণ: তৈতিল বিকাল ঘ ০২:৩৯:২০ দং ২২/৫১/৪০ পর্যন্ত পরে গর শেষ রাত্রি ঘ ০১:৩১:১৭ দং ৫০/০/৪২.৫ পর্যন্ত পরে বণিজ",
@@ -152,13 +152,13 @@
   "meta": {
     "region": "kolkata",
     "screen": "home",
-    "checkedOn": "2026-09-30",
-    "contentHash": "f48b71e4efc45e6c90b2f1506e4501ff890cbf008153cab8f0caa3817a836e83",
+    "checkedOn": "2026-10-01",
+    "contentHash": "9c6cc2178dca650597120686eab4e4dd1b6089f30ade3b2112c755763fc7f3a7",
     "previousContentHash": "f48b71e4efc45e6c90b2f1506e4501ff890cbf008153cab8f0caa3817a836e83",
     "previousCheckedOn": "2026-09-30",
-    "contentLastChangedOn": "2026-09-30",
+    "contentLastChangedOn": "2026-10-01",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
