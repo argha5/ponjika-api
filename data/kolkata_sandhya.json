@@ -13,17 +13,17 @@
     ],
     [
       "অরুনোদয় কাল",
-      "ভোর ০৩:০৫:১৩",
+      "ভোর ০৩:০৫:০২",
       "সকাল ০৫:৩১:১৯"
     ],
     [
       "ব্রহ্ম মুহূর্ত্ত",
-      "ভোর ০৩:৫৩:৫৫",
-      "ভোর ০৪:৪২:৩৭"
+      "ভোর ০৩:৫৩:৪৮",
+      "ভোর ০৪:৪২:৩৪"
     ],
     [
       "প্রাত সন্ধ্যা",
-      "ভোর ০৪:১৮:১৬",
+      "ভোর ০৪:১৮:১১",
       "সকাল ০৫:৩১:১৯"
     ],
     [
@@ -85,11 +85,11 @@
   "meta": {
     "region": "kolkata",
     "screen": "sandhya",
-    "checkedOn": "2026-10-03",
-    "contentHash": "bb58cd7254d0b00ff6b12cbcc1e4019853ddc9cf7e37943d70e31d2c9631fa31",
-    "previousContentHash": "ddf77b596a393949667175b79a77831d9f587869def0d8f843bee24f89509c09",
+    "checkedOn": "2026-10-04",
+    "contentHash": "fab47d1a421033a647cbf41d681a07e5d3f1974993f8bf5146f0ff546ad8c598",
+    "previousContentHash": "bb58cd7254d0b00ff6b12cbcc1e4019853ddc9cf7e37943d70e31d2c9631fa31",
     "previousCheckedOn": "2026-10-03",
-    "contentLastChangedOn": "2026-10-03",
+    "contentLastChangedOn": "2026-10-04",
     "isUpdatedForToday": true,
     "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
