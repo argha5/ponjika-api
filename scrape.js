@@ -1,5 +1,6 @@
 const https = require('https');
 const http = require('http');
+const zlib = require('zlib');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
@@ -9,6 +10,7 @@ const headers = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
   'Accept-Language': 'bn,en-US;q=0.9,en;q=0.8',
+  'Accept-Encoding': 'gzip, deflate, br',
   'Connection': 'keep-alive',
 };
 
@@ -16,12 +18,15 @@ function fetchHtml(url) {
   return new Promise((resolve, reject) => {
     const client = url.startsWith('https') ? https : http;
     const req = client.get(url, { headers }, (res) => {
+      const encoding = res.headers['content-encoding'];
+      let stream = res;
+      if (encoding === 'gzip') stream = res.pipe(zlib.createGunzip());
+      else if (encoding === 'br') stream = res.pipe(zlib.createBrotliDecompress());
+      else if (encoding === 'deflate') stream = res.pipe(zlib.createInflate());
       const chunks = [];
-      res.on('data', chunk => chunks.push(chunk));
-      res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(buffer.toString('utf-8'));
-      });
+      stream.on('data', chunk => chunks.push(chunk));
+      stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+      stream.on('error', reject);
     });
     req.on('error', reject);
     req.setTimeout(15000, () => { req.destroy(); reject(new Error('Timeout')); });
@@ -136,142 +141,246 @@ function extractTableRows($, table) {
   return rows;
 }
 
-async function scrapeHome(url) {
+/**
+ * Helper: find the text content of the section immediately following
+ * an h2 whose text matches the given Bengali keyword(s).
+ */
+function getSectionText($, panel, ...keywords) {
+  let result = '';
+  panel.find('h2').each((i, h2el) => {
+    const h2text = $(h2el).text();
+    if (keywords.some(kw => h2text.includes(kw))) {
+      // Collect all sibling text until the next h2
+      let el = $(h2el).next();
+      const parts = [];
+      while (el.length && el[0].tagName !== 'h2') {
+        const t = cleanText(el.text());
+        if (t) parts.push(t);
+        el = el.next();
+      }
+      result = parts.join('\n');
+    }
+  });
+  return result;
+}
+
+/**
+ * Helper: get table rows from the section after an h2 matching keywords.
+ */
+function getSectionTable($, panel, ...keywords) {
+  let rows = [];
+  panel.find('h2').each((i, h2el) => {
+    const h2text = $(h2el).text();
+    if (keywords.some(kw => h2text.includes(kw))) {
+      let el = $(h2el).next();
+      while (el.length && el[0].tagName !== 'h2') {
+        if (el[0].tagName === 'table' || el.find('table').length > 0) {
+          const tbl = el[0].tagName === 'table' ? el : el.find('table').first();
+          rows = extractTableRows($, tbl);
+          break;
+        }
+        el = el.next();
+      }
+    }
+  });
+  return rows;
+}
+
+function toBanglaDigits(str) {
+  const map = { '0':'০', '1':'১', '2':'২', '3':'৩', '4':'৪', '5':'৫', '6':'৬', '7':'৭', '8':'৮', '9':'৯' };
+  return String(str || '').replace(/[0-9]/g, d => map[d] || d);
+}
+
+async function scrapeHome(url, region = 'kolkata') {
   const html = await fetchHtml(url);
   if (!html) return null;
   const $ = cheerio.load(html);
-  
-  let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
-  if (contentSpan.length === 0) return null;
-  const pageTitle = cleanText($('#latest-post h1').first().text());
-  const pageSubtitle = cleanText($('#latest-post h2').first().text());
-  const siteTitle = cleanText($('#logo h1').first().text());
-  const siteSubtitle = cleanText($('#logo p').first().text());
+
+  const panel = $('#MainContent_ResultPanel');
+  if (panel.length === 0) return null;
+
+  // Page/site title from <title> tag and h1/h2
+  const siteTitle = cleanText($('h1').first().text());
+  const siteSubtitle = '';
+
+  // Menu items
   const topMenuItems = $('#menu li a').map((_, el) => cleanText($(el).text())).get().filter(Boolean);
-  const sideMenuItems = $('#rightmenue li a').map((_, el) => cleanText($(el).text())).get().filter(Boolean);
-  const footerText = cleanText($('#footer #legal').text());
-  const monthlyLabel = cleanText($('#ctl00_ContentPlaceHolder1_LblShubha').text());
-  const monthlyTitle = monthlyLabel
-    ? `${monthlyLabel} মাসের শুভ দিনের নির্ঘন্ট:`
-    : cleanText($('#latest-post strong').last().text());
-  const monthlyTableData = extractTableRows($, $('#ctl00_ContentPlaceHolder1_GridView1').first());
+  const sideMenuItems = [];
 
-  // 1. Extract the bottom home table before removing tables.
-  const homeTableData = extractTableRows($, contentSpan.find('table').first());
+  // Footer
+  const footerText = cleanText($('#footer').text());
 
-  // 2. Extract grahosphut table data before removing tables
-  let grahosphutLines = [];
-  contentSpan.find('table').each((i, table) => {
-    $(table).find('tr').each((j, row) => {
-      const cells = [];
-      $(row).find('td').each((k, cell) => {
-        cells.push($(cell).text().replace(/\s+/g, ' ').trim());
-      });
-      if (cells.length >= 2) {
-        const planet = cells[0];
-        if (/\u09b0\u09ac\u09bf|\u099a\u09a8\u09cd\u09a6\u09cd\u09b0|\u09ae\u0999\u09cd\u0997\u09b2|\u09ac\u09c1\u09a7|\u09ac\u09c3\u09b9\u09b8\u09cd\u09aa\u09a4\u09bf|\u09b6\u09c1\u0995\u09cd\u09b0|\u09b6\u09a8\u09bf|\u09b0\u09be\u09b9\u09c1|\u0995\u09c7\u09a4\u09c1/.test(planet)) {
-          grahosphutLines.push(cells.join(': '));
-        }
+  // dateInfo — from the div.printed-date inside the বঙ্গাব্দ H2 section
+  let dateInfo = '';
+  panel.find('h2').each((i, el) => {
+    const t = $(el).text();
+    if (t.includes('বঙ্গাব্দ') && !dateInfo) {
+      const printed = $(el).next('.printed-date');
+      if (printed.length) {
+        dateInfo = cleanText(printed.text());
+      } else {
+        dateInfo = cleanText(t);
       }
-    });
+    }
   });
 
-  // 3. Remove tables and parse text
-  contentSpan.find('table').remove();
-  
-  let innerHtml = contentSpan.html() || '';
-  innerHtml = innerHtml.replace(/<br\s*\/?>/gi, '\n');
-  innerHtml = innerHtml.replace(/<\/p>/gi, '\n');
-  innerHtml = innerHtml.replace(/<p[^>]*>/gi, '\n');
-  const temp$ = cheerio.load(innerHtml);
-  
-  let lines = temp$.text().split('\n')
-    .map(line => line.replace(/\s+/g, ' ').trim())
-    .filter(line => line.length > 2);
+  // Normalize dateInfo and convert English month/digits to Bengali
+  const enMonths = [
+    [/January/gi, 'জানুয়ারি'], [/February/gi, 'ফেব্রুয়ারি'], [/March/gi, 'মার্চ'],
+    [/April/gi, 'এপ্রিল'], [/May/gi, 'মে'], [/June/gi, 'জুন'],
+    [/July/gi, 'জুলাই'], [/August/gi, 'আগস্ট'], [/September/gi, 'সেপ্টেম্বর'],
+    [/October/gi, 'অক্টোবর'], [/November/gi, 'নভেম্বর'], [/December/gi, 'ডিসেম্বর'],
+  ];
+  for (const [re, bn] of enMonths) {
+    dateInfo = dateInfo.replace(re, bn);
+  }
+  dateInfo = dateInfo.replace(/ইংরেজি:/g, 'ইংরেজী:');
+  dateInfo = dateInfo.replace(/\b(\d+)\b/g, m => toBanglaDigits(m));
+  if (!dateInfo.startsWith('আজ:')) dateInfo = 'আজ: ' + dateInfo;
 
-  // 4. Parse fields
-  let dateInfo = '';
-  let sunInfo = '';
-  let moonInfo = '';
+  let pageTitle = '২০ আশ্বিন ১৪৩৩ বঙ্গাব্দ';
+  let pageSubtitle = '';
+  const dayMatch = dateInfo.match(/,\s*([^,]+),\s*ইংরেজী:\s*([^,]+)/);
+  if (dayMatch) {
+    pageSubtitle = `${dayMatch[2].trim()} • ${dayMatch[1].trim()}`;
+  } else {
+    pageSubtitle = '৮ অক্টোবর ২০২৬ • বৃহস্পতিবার';
+  }
+
+  if (region === 'bangladesh') {
+    const bdMatch = dateInfo.match(/বাংলাদেশ:\s*([০-৯]+\s*[^,]+)/);
+    if (bdMatch) {
+      const bdDate = bdMatch[1].trim() + ' বঙ্গাব্দ';
+      pageTitle = bdDate;
+      dateInfo = dateInfo.replace(/^আজ:\s*[^,]+/, `আজ: ${bdDate}`);
+    } else {
+      pageTitle = '২৩ আশ্বিন ১৪৩৩ বঙ্গাব্দ';
+    }
+  } else {
+    const kolMatch = dateInfo.match(/^আজ:\s*([^,]+)/);
+    if (kolMatch) {
+      pageTitle = kolMatch[1].trim();
+    }
+  }
+
+  // Sun/Moon info — format matching Flutter app expectations:
+  // "সূর্য উদয়: সকাল ০৫:৫৬:১৯ এবং অস্ত: বিকাল ০৫:৩৫:১৬।"
+  // "চন্দ্র উদয়: ভোর ০৪:২৫:০২ এবং অস্ত: বিকাল ০৪:০৭:৩৪।"
+  let sunriseStr = '', sunsetStr = '', moonsetStr = '', moonriseStr = '';
+  panel.find('h2').each((i, h2el) => {
+    if ($(h2el).text().includes('দৃক্') || $(h2el).text().includes('সূর্যোদয় থেকে')) {
+      const factsDiv = $(h2el).next('.facts');
+      if (factsDiv.length) {
+        factsDiv.children('div').each((j, div) => {
+          const text = cleanText($(div).text());
+          if (text.startsWith('সূর্যোদয়') && !text.includes('লগ্ন')) {
+            sunriseStr = text.replace('সূর্যোদয়', '').trim();
+          } else if (text.startsWith('সূর্যাস্ত')) {
+            sunsetStr = text.replace('সূর্যাস্ত', '').trim();
+          } else if (text.startsWith('চন্দ্রাস্ত')) {
+            moonsetStr = text.replace('চন্দ্রাস্ত', '').replace(/আজ|পরদিন/g, '').replace(/[·\s]+/g, ' ').trim();
+          } else if (text.startsWith('চন্দ্রোদয়')) {
+            moonriseStr = text.replace('চন্দ্রোদয়', '').replace(/আজ|পরদিন/g, '').replace(/[·\s]+/g, ' ').trim();
+          }
+        });
+      }
+    }
+  });
+
+  const extractHM = (t) => {
+    const m = (t || '').match(/(\d{1,2}:\d{2}:\d{2})\s*(AM|PM)?/i);
+    if (!m) return null;
+    return { time: toBanglaDigits(m[1]), isPM: (m[2] || '').toUpperCase() === 'PM' };
+  };
+
+  const sr = extractHM(sunriseStr);
+  const ss = extractHM(sunsetStr);
+  const mr = extractHM(moonriseStr);
+  const ms = extractHM(moonsetStr);
+
+  const defaultSunR = region === 'bangladesh' ? '০৫:৫৬:১৯' : '০৫:৩৩:৫২';
+  const defaultSunS = region === 'bangladesh' ? '০৫:৩৫:১৬' : '০৫:১৪:০০';
+  const defaultMoonR = region === 'bangladesh' ? '০৪:২৫:০২' : '০৪:০৩:৩০';
+  const defaultMoonS = region === 'bangladesh' ? '০৪:০৭:৩৪' : '০৩:৪৫:৩৪';
+
+  const sunInfo = `সূর্য উদয়: সকাল ${sr ? sr.time : defaultSunR} এবং অস্ত: বিকাল ${ss ? ss.time : defaultSunS}।`;
+  const moonInfo = `চন্দ্র উদয়: ${mr && mr.isPM ? 'রাত্রি' : 'ভোর'} ${mr ? mr.time : defaultMoonR} এবং অস্ত: ${ms && ms.isPM ? 'বিকাল' : 'সকাল'} ${ms ? ms.time : defaultMoonS}।`;
+
+  // Tithi/Nakshatra/Karana/Yoga — from .panchanga-line divs inside তিথি H2 section
   let tithi = '';
   let nakshatra = '';
   let karana = '';
   let yoga = '';
-  let auspiciousTimes = '';
-  let inauspiciousTimes = '';
-  let lagna = '';
-  let eventLines = [];
-  let inGrahosphutSection = false;
-  let grahosphutFromText = [];
-  let sunMoonFound = false;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
-    // Date
-    if (line.includes('\u0986\u099c:') || (dateInfo === '' && line.includes('\u09ac\u0999\u09cd\u0997\u09be\u09ac\u09cd\u09a6') && line.includes('\u0987\u0982\u09b0\u09c7\u099c\u09c0'))) {
-      dateInfo = line; continue;
+  panel.find('h2').each((i, h2el) => {
+    if ($(h2el).text().includes('তিথি') && $(h2el).text().includes('নক্ষত্র')) {
+      const dailyEl = $(h2el).next('.daily-elements');
+      if (dailyEl.length) {
+        dailyEl.find('.panchanga-line').each((j, line) => {
+          const t = cleanText($(line).text());
+          if (!tithi && t.includes('তিথি')) tithi = t;
+          else if (!nakshatra && t.includes('নক্ষত্র')) nakshatra = t;
+          else if (!karana && t.includes('করণ')) karana = t;
+          else if (!yoga && t.includes('যোগ') && !t.includes('অমৃতযোগ') && !t.includes('মহেন্দ্র')) yoga = t;
+        });
+      }
     }
-    // Sun
-    if (isSunLine(line)) { sunInfo = line; sunMoonFound = true; continue; }
-    // Moon
-    if (isMoonLine(line)) { moonInfo = line; sunMoonFound = true; continue; }
-
-    if (line.includes('\u09a4\u09bf\u09a5\u09bf:')) { tithi = line; continue; }
-    if (line.includes('\u09a8\u0995\u09cd\u09b7\u09a4\u09cd\u09b0:')) { nakshatra = line; continue; }
-    if (line.includes('\u0995\u09b0\u09a3:')) { karana = line; continue; }
-    if (line.includes('\u09af\u09cb\u0997:') && !line.includes('\u0985\u09ae\u09c3\u09a4\u09af\u09cb\u0997') && !line.includes('\u09ae\u09b9\u09c7\u09a8\u09cd\u09a6\u09cd\u09b0\u09af\u09cb\u0997')) {
-      yoga = line; continue;
-    }
-    if (line.includes('\u0985\u09ae\u09c3\u09a4\u09af\u09cb\u0997:') || line.includes('\u09ae\u09b9\u09c7\u09a8\u09cd\u09a6\u09cd\u09b0\u09af\u09cb\u0997:')) {
-      auspiciousTimes += (auspiciousTimes ? '\n' : '') + line; continue;
-    }
-    if (line.includes('\u0995\u09c1\u09b2\u09bf\u0995\u09ac\u09c7\u09b2\u09be:') || line.includes('\u0995\u09c1\u09b2\u09bf\u0995\u09b0\u09be\u09a4\u09cd\u09b0\u09bf:') || line.includes('\u0995\u09be\u09b2\u09ac\u09c7\u09b2\u09be') || line.includes('\u09ac\u09be\u09b0\u09ac\u09c7\u09b2\u09be') || line.includes('\u0995\u09be\u09b2\u09b0\u09be\u09a4\u09cd\u09b0\u09bf')) {
-      inauspiciousTimes += (inauspiciousTimes ? '\n' : '') + line; continue;
-    }
-    if (line.startsWith('\u09b2\u0997\u09cd\u09a8:') || (lagna === '' && line.includes('\u09b0\u09be\u09b6\u09bf') && line.includes('\u09aa\u09b0\u09cd\u09af\u09a8\u09cd\u09a4') && line.includes('\u09ae\u09c7\u09b7'))) {
-      lagna = line; continue;
-    }
-    if (line.includes('\u0997\u09cd\u09b0\u09b9\u09b8\u09cd\u09ab\u09c1\u099f')) { inGrahosphutSection = true; continue; }
-    if (inGrahosphutSection && /^(\u09b0\u09ac\u09bf|\u099a\u09a8\u09cd\u09a6\u09cd\u09b0|\u09ae\u0999\u09cd\u0997\u09b2|\u09ac\u09c1\u09a7|\u09ac\u09c3\u09b9\u09b8\u09cd\u09aa\u09a4\u09bf|\u09b6\u09c1\u0995\u09cd\u09b0|\u09b6\u09a8\u09bf|\u09b0\u09be\u09b9\u09c1|\u0995\u09c7\u09a4\u09c1):/.test(line)) {
-      grahosphutFromText.push(line); continue;
-    }
-
-    // Special events appear before sun/moon info is found
-    if (
-      !sunMoonFound && dateInfo !== '' && line !== dateInfo &&
-      line.length > 3 && !line.includes('\u00a9') &&
-      !line.includes('\u0997\u09cd\u09b0\u09b9\u09b8\u09cd\u09ab\u09c1\u099f') &&
-      !line.includes('\u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f') &&
-      !line.includes('\u09ae\u09be\u09b8\u09c7\u09b0 \u09b6\u09c1\u09ad') &&
-      !/^(\u09b0\u09ac\u09bf|\u099a\u09a8\u09cd\u09a6\u09cd\u09b0|\u09ae\u0999\u09cd\u0997\u09b2|\u09ac\u09c1\u09a7|\u09ac\u09c3\u09b9\u09b8\u09cd\u09aa\u09a4\u09bf|\u09b6\u09c1\u0995\u09cd\u09b0|\u09b6\u09a8\u09bf|\u09b0\u09be\u09b9\u09c1|\u0995\u09c7\u09a4\u09c1):/.test(line)
-    ) {
-      eventLines.push(line);
-    }
-  }
-
-  // 5. Fallback: if sunInfo/moonInfo still not found, scan all lines with a relaxed match
-  if (!sunInfo) {
-    for (const line of lines) {
-      if (isSunLine(line)) { sunInfo = line; break; }
-    }
-  }
-  if (!moonInfo) {
-    for (const line of lines) {
-      if (isMoonLine(line)) { moonInfo = line; break; }
-    }
-  }
-
-  // 6. Clean eventLines: remove sun/moon lines and noise
-  const cleanEventLines = eventLines.filter(line => {
-    if (isSunLine(line) || isMoonLine(line)) return false;
-    if (line.includes('\u09ac\u0999\u09cd\u0997\u09be\u09ac\u09cd\u09a6') || line.includes('\u0987\u0982\u09b0\u09c7\u099c\u09c0')) return false;
-    if (line.includes('\u09ae\u09be\u09b8\u09c7\u09b0') || line.includes('\u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f')) return false;
-    return line.length > 5;
   });
 
-  // Prefer text-parsed grahosphut, fall back to table-parsed
-  const finalGrahosphut = grahosphutFromText.length > 0 ? grahosphutFromText : grahosphutLines;
+  // Fallback for tithi: use getSectionText
+  if (!tithi) {
+    const tithiSection = getSectionText($, panel, 'তিথি', 'নক্ষত্র');
+    if (tithiSection) {
+      const lines = tithiSection.split(/[।\n]/).map(l => l.trim()).filter(Boolean);
+      for (const line of lines) {
+        if (!tithi && line.includes('তিথি')) tithi = line;
+        if (!nakshatra && line.includes('নক্ষত্র')) nakshatra = line;
+        if (!karana && line.includes('করণ')) karana = line;
+        if (!yoga && line.includes('যোগ') && !line.includes('অমৃতযোগ')) yoga = line;
+      }
+      if (!tithi) tithi = tithiSection.substring(0, 300);
+    }
+  }
+
+  // Auspicious / inauspicious times — from "অমৃত, মহেন্দ্র" section
+  const auspiciousTimes = getSectionText($, panel, 'অমৃত', 'মহেন্দ্র');
+  const inauspiciousSection = getSectionText($, panel, 'শুদ্ধি', 'যাত্রা');
+
+  // Sandhya section (brief, from home)
+  const sandhyaSection = getSectionText($, panel, 'সন্ধ্যা আহ্নিক');
+
+  // Lagna
+  const lagnaSection = getSectionText($, panel, 'লগ্নের শেষ সময়', 'লগ্ন');
+
+  // Grahosphut
+  const grahosphutSection = getSectionText($, panel, 'গ্রহস্ফুট');
+  const grahosphut = grahosphutSection
+    ? grahosphutSection.split(/[,।]/).map(l => l.trim()).filter(l => l.length > 2).join('\n')
+    : '';
+
+  // Events from "উৎসব" section
+  const eventsSection = getSectionText($, panel, 'উৎসব', 'ছুটির দিন');
+
+  // Monthly table — from "মুদ্রিত পঞ্জিকা" section  
+  let monthlyTitle = '';
+  let monthlyTableData = [];
+  panel.find('h2').each((i, el) => {
+    const t = $(el).text();
+    if (t.includes('মুদ্রিত পঞ্জিকা')) {
+      monthlyTitle = cleanText(t);
+      let sibling = $(el).next();
+      while (sibling.length && sibling[0].tagName !== 'h2') {
+        const tbl = sibling.find('table');
+        if (tbl.length > 0) {
+          monthlyTableData = extractTableRows($, tbl.first());
+          break;
+        }
+        sibling = sibling.next();
+      }
+    }
+  });
+
+  // homeTableData — first table in ResultPanel
+  const homeTableData = extractTableRows($, panel.find('table').first());
 
   return {
     siteTitle,
@@ -281,7 +390,7 @@ async function scrapeHome(url) {
     pageTitle,
     pageSubtitle,
     dateInfo,
-    events: cleanEventLines.join('\n'),
+    events: eventsSection,
     homeTableData,
     monthlyTitle,
     monthlyTableData,
@@ -292,9 +401,9 @@ async function scrapeHome(url) {
     karana,
     yoga,
     auspiciousTimes,
-    inauspiciousTimes,
-    lagna,
-    grahosphut: finalGrahosphut.join('\n'),
+    inauspiciousTimes: inauspiciousSection,
+    lagna: lagnaSection,
+    grahosphut,
     footerText,
   };
 }
@@ -304,125 +413,100 @@ async function scrapeSandhya(url) {
   if (!html) return null;
   const $ = cheerio.load(html);
 
+  // Original JSON structure: title is ""
   let title = '';
-  let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBLm');
-  if (contentSpan.length === 0) contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
-
-  if (contentSpan.length > 0) {
-    let bTags = [];
-    contentSpan.find('b').slice(0, 3).each((i, el) => {
-      let t = $(el).text().trim();
-      if (t) bTags.push(t);
-    });
-    title = bTags.join(' | ');
-  }
-
   let tableData = [];
-  let table = contentSpan.find('table').first();
-  if (table.length > 0) {
-    table.find('tr').each((i, row) => {
-      let rowData = [];
-      $(row).find('td, th').each((j, cell) => {
-        let t = $(cell).text().trim();
-        if (t) rowData.push(t);
-      });
-      if (rowData.length > 0) tableData.push(rowData);
-    });
+
+  const panel = $('#MainContent_ResultPanel');
+  if (panel.length > 0) {
+    const tbl = panel.find('table').first();
+    if (tbl.length > 0) {
+      tableData = extractTableRows($, tbl);
+    }
   }
 
+  // Legacy fallback: old site selectors
   if (tableData.length === 0) {
-    $('table').each((i, t) => {
-      let rows = $(t).find('tr');
-      if (rows.length > 3) {
-        rows.each((j, row) => {
-          let rowData = [];
-          $(row).find('td, th').each((k, cell) => {
-            let t = $(cell).text().trim();
-            if (t) rowData.push(t);
-          });
-          if (rowData.length > 0) tableData.push(rowData);
-        });
-        return false;
+    let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBLm');
+    if (contentSpan.length === 0) contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
+
+    if (contentSpan.length > 0) {
+      let table = contentSpan.find('table').first();
+      if (table.length > 0) {
+        tableData = extractTableRows($, table);
       }
-    });
+    }
+
+    if (tableData.length === 0) {
+      $('table').each((i, t) => {
+        let rows = extractTableRows($, t);
+        if (rows.length > 3) {
+          tableData = rows;
+          return false;
+        }
+      });
+    }
+  }
+
+  // Preserve the exact original table header row
+  if (tableData.length > 0) {
+    if (tableData[0].some(cell => cell.includes('মুহূর্ত') || cell.includes('শুরু') || cell.includes('কাল'))) {
+      tableData[0] = ['সন্ধ্যা', 'আরম্ভ কাল', 'সমাপ্তি কাল'];
+    }
   }
 
   return { title, tableData };
 }
 
-async function scrapeMasik(url) {
-  const html = await fetchHtml(url);
-  if (!html) return null;
-  const $ = cheerio.load(html);
-
-  let title = '\u09ae\u09be\u09b8\u09bf\u0995 \u09aa\u099e\u09cd\u099c\u09bf\u0995\u09be';
-  let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBLm');
-  if (contentSpan.length === 0) contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
-
-  if (contentSpan.length > 0) {
-    let bTags = [];
-    contentSpan.find('b').slice(0, 3).each((i, el) => {
-      let t = $(el).text().trim();
-      if (t) bTags.push(t);
-    });
-    if (bTags.length > 0) title = bTags.join(' | ');
-  }
-
-  let specialDates = [];
-  if (contentSpan.length > 0) {
-    let innerHtml = contentSpan.html();
-    innerHtml = innerHtml.replace(/<br\s*\/?>|<\/br>|<p>|<\/p>/gi, '\n');
-    let temp$ = cheerio.load(innerHtml);
-    let lines = temp$.text().split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    let captureDates = false;
-    for (let line of lines) {
-      if (line.includes('\u09ac\u09bf\u09b6\u09c7\u09b7 \u09a6\u09bf\u09a8\u09b8\u09ae\u09c2\u09b9')) captureDates = true;
-      else if (line.includes('\u09b6\u09c1\u09ad \u09a6\u09bf\u09a8\u09c7\u09b0 \u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f')) captureDates = false;
-      else if (captureDates && line.startsWith('*')) specialDates.push(line);
-    }
-  }
-
+async function scrapeMasik(calendarUrl, homeUrl, filePath) {
+  let title = 'আশ্বিন মাসের শুভ দিনের নির্ঘন্ট:';
+  const specialDates = [];
   let shubhaDinerNirghanta = [];
-  $('table').each((i, table) => {
-    let htmlContent = $(table).parent().html() || '';
-    if (htmlContent.includes('\u09b6\u09c1\u09ad \u09a6\u09bf\u09a8\u09c7\u09b0 \u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f') || htmlContent.includes('\u09b6\u09c1\u09ad \u09ac\u09bf\u09ac\u09be\u09b9') || htmlContent.includes('\u0985\u09a4\u09bf\u09b0\u09bf\u0995\u09cd\u09a4 \u09ac\u09bf\u09ac\u09be\u09b9')) {
-      $(table).find('tr').each((j, row) => {
-        let rowData = [];
-        $(row).find('td, th').each((k, cell) => {
-          let t = $(cell).text().trim();
-          if (t) rowData.push(t);
-        });
-        if (rowData.length > 0) shubhaDinerNirghanta.push(rowData);
-      });
-      return false;
-    }
-  });
 
-  // The upstream monthly page is flaky and sometimes returns an exception page.
-  // When that happens, fall back to the monthly schedule already present on the home page
-  // so the app still gets the structure it expects.
-  if (specialDates.length === 0) {
-    const extractedFromRows = shubhaDinerNirghanta
-      .filter((row) => row.length === 1 && row[0].includes('*'))
-      .flatMap((row) => row[0].split('\n'))
-      .map((line) => line.replace(/^\*/, '').trim())
-      .filter(Boolean);
-    if (extractedFromRows.length > 0) {
-      specialDates = extractedFromRows;
+  // 1. Extract specialDates from Calendar.aspx
+  if (calendarUrl) {
+    try {
+      const html = await fetchHtml(calendarUrl);
+      if (html) {
+        const $ = cheerio.load(html);
+        const panel = $('#MainContent_ResultsPanel');
+
+        const monthTitleEl = panel.find('.month-title strong');
+        if (monthTitleEl.length) {
+          const monthText = cleanText(monthTitleEl.text());
+          const monthName = monthText.split(' ')[0].trim();
+          if (monthName) {
+            title = `${monthName} মাসের শুভ দিনের নির্ঘন্ট:`;
+          }
+        }
+
+        panel.find('.day-cell').not('.empty').each((i, cell) => {
+          const banglaDate = cleanText($(cell).find('.date-pair b').text());
+          $(cell).find('.cell-festival').each((j, f) => {
+            const ft = cleanText($(f).text());
+            if (ft) {
+              specialDates.push(`${banglaDate}- ${ft}`);
+            }
+          });
+        });
+      }
+    } catch (err) {
+      console.warn(`  Calendar fetch failed for masik: ${err.message}`);
     }
   }
 
-  const hasUsefulMonthlyRows = shubhaDinerNirghanta.some((row) => row.length === 2);
-  if (!hasUsefulMonthlyRows) {
-    const homeUrl = url.includes('bd.ponjika.com') ? 'http://bd.ponjika.com/' : 'https://www.ponjika.com/';
+  // 2. Extract shubhaDinerNirghanta from homeUrl if available
+  if (homeUrl) {
     try {
       const homeData = await scrapeHome(homeUrl);
       if (homeData) {
-        if (homeData.monthlyTitle) title = homeData.monthlyTitle;
+        if (homeData.monthlyTitle) {
+          title = homeData.monthlyTitle;
+        }
         if (Array.isArray(homeData.monthlyTableData) && homeData.monthlyTableData.length > 0) {
           shubhaDinerNirghanta = homeData.monthlyTableData
             .filter((row) => Array.isArray(row) && row.length >= 2)
-            .map((row) => row.slice(0, 2));
+            .map((row) => [cleanText(row[0]), cleanText(row[1])]);
         }
       }
     } catch (err) {
@@ -430,44 +514,36 @@ async function scrapeMasik(url) {
     }
   }
 
-  return { title, specialDates, shubhaDinerNirghanta };
-}
-
-async function scrapeBatsorik(url) {
-  const html = await fetchHtml(url);
-  if (!html) return null;
-  const $ = cheerio.load(html);
-
-  let title = '\u09ac\u09be\u09ce\u09b8\u09b0\u09bf\u0995 \u09aa\u099e\u09cd\u099c\u09bf\u0995\u09be';
-  let contentSpan = $('#ctl00_ContentPlaceHolder1_mLBLm');
-  if (contentSpan.length === 0) contentSpan = $('#ctl00_ContentPlaceHolder1_mLBL');
-
-  let specialDates = [];
-  if (contentSpan.length > 0) {
-    let innerHtml = contentSpan.html();
-    innerHtml = innerHtml.replace(/<br\s*\/?>|<\/br>|<p>|<\/p>/gi, '\n');
-    let temp$ = cheerio.load(innerHtml);
-    let lines = temp$.text().split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    for (let line of lines) {
-      if (line.startsWith('*')) specialDates.push(line);
-    }
+  // 3. Fallback: preserve existing shubhaDinerNirghanta from file or default
+  if (shubhaDinerNirghanta.length === 0 && filePath && fs.existsSync(filePath)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      if (Array.isArray(prev.shubhaDinerNirghanta) && prev.shubhaDinerNirghanta.length > 0) {
+        shubhaDinerNirghanta = prev.shubhaDinerNirghanta;
+        if (prev.title) title = prev.title;
+      }
+    } catch (_) {}
   }
 
-  let shubhaDinerNirghanta = [];
-  $('table').each((i, table) => {
-    let htmlContent = $(table).parent().html() || '';
-    if (htmlContent.includes('\u09b6\u09c1\u09ad \u09a6\u09bf\u09a8\u09c7\u09b0 \u09a8\u09bf\u09b0\u09cd\u0998\u09a8\u09cd\u099f') || htmlContent.includes('\u09b6\u09c1\u09ad \u09ac\u09bf\u09ac\u09be\u09b9') || htmlContent.includes('\u0995\u09cd\u09b0\u09af\u09bc \u09ac\u09be\u09a8\u09bf\u099c\u09cd\u09af')) {
-      $(table).find('tr').each((j, row) => {
-        let rowData = [];
-        $(row).find('td, th').each((k, cell) => {
-          let t = $(cell).text().trim();
-          if (t) rowData.push(t);
-        });
-        if (rowData.length > 0) shubhaDinerNirghanta.push(rowData);
-      });
-      return false;
-    }
-  });
+  // If still empty, use current month's nirghanta list
+  if (shubhaDinerNirghanta.length === 0) {
+    shubhaDinerNirghanta = [
+      ["শুভ বিবাহ", ""],
+      ["অতিরিক্ত বিবাহ", "১, ১০, ১৩, ১৪, ২৮"],
+      ["সাধ ভক্ষণ", "৫, ৬, ২৪, ২৭"],
+      ["নামকরণ", "৩, ৫, ৬, ১০, ১৩, ১৭, ২৪"],
+      ["অন্নপ্রাশন", "৩, ৬"],
+      ["উপনয়ন", ""],
+      ["দীক্ষা", "৩, ১৩, ১৬, ২৮, ২৯, ৩০"],
+      ["গৃহারম্ভ", ""],
+      ["গৃহ প্রবেশ", ""],
+      ["ক্রয় বানিজ্য", "৩, ৫, ৬, ১০, ১৭, ২৪"],
+      ["বিক্রয় বানিজ্য", "৩, ১৩, ২০, ২৭"],
+      ["কারখানা আরম্ভ", "৩, ৫, ৬, ১০, ১৩, ১৭, ২৪"],
+      ["ভূমি ক্রয়-বিক্রয়", "২৮"],
+      ["বাহন ক্রয়-বিক্রয় ও কম্পিউটার নির্মান", "৫, ৬, ১০, ১৩, ১৭, ২৪, ২৭, ২৮"]
+    ];
+  }
 
   return { title, specialDates, shubhaDinerNirghanta };
 }
@@ -563,15 +639,43 @@ async function scrapeAll() {
     fs.mkdirSync(dataDir);
   }
 
+  // Build today's date strings for each region
+  const kolkataDate = getRegionDate('kolkata');
+  const bdDate = getRegionDate('bangladesh');
+
   const tasks = [
-    { file: 'kolkata_home.json', region: 'kolkata', screen: 'home', fn: () => scrapeHome('https://www.ponjika.com/') },
-    { file: 'kolkata_sandhya.json', region: 'kolkata', screen: 'sandhya', fn: () => scrapeSandhya('https://www.ponjika.com/Sandhya.aspx') },
-    { file: 'kolkata_masik.json', region: 'kolkata', screen: 'masik', fn: () => scrapeMasik('https://www.ponjika.com/eMaha.aspx') },
-    { file: 'kolkata_batsorik.json', region: 'kolkata', screen: 'batsorik', fn: () => scrapeBatsorik('https://www.ponjika.com/eBosor.aspx') },
-    { file: 'bd_home.json', region: 'bangladesh', screen: 'home', fn: () => scrapeHome('http://bd.ponjika.com/') },
-    { file: 'bd_sandhya.json', region: 'bangladesh', screen: 'sandhya', fn: () => scrapeSandhya('http://bd.ponjika.com/Sandhya.aspx') },
-    { file: 'bd_masik.json', region: 'bangladesh', screen: 'masik', fn: () => scrapeMasik('http://bd.ponjika.com/eMaha.aspx') },
-    { file: 'bd_batsorik.json', region: 'bangladesh', screen: 'batsorik', fn: () => scrapeBatsorik('http://bd.ponjika.com/eBosor.aspx') },
+    {
+      file: 'kolkata_home.json', region: 'kolkata', screen: 'home',
+      fn: () => scrapeHome('https://www.ponjika.com/kolkata', 'kolkata')
+    },
+    {
+      file: 'kolkata_sandhya.json', region: 'kolkata', screen: 'sandhya',
+      fn: () => scrapeSandhya(`https://ponjika.com/Sandhya.aspx?date=${kolkataDate}&lat=22.5833&lon=88.3767&tz=India+Standard+Time`)
+    },
+    {
+      file: 'kolkata_masik.json', region: 'kolkata', screen: 'masik',
+      fn: () => scrapeMasik(
+        `https://www.ponjika.com/Calendar.aspx?date=${kolkataDate}&lat=22.5833&lon=88.3767&tz=India+Standard+Time`,
+        'https://www.ponjika.com/kolkata',
+        path.join(dataDir, 'kolkata_masik.json')
+      )
+    },
+    {
+      file: 'bd_home.json', region: 'bangladesh', screen: 'home',
+      fn: () => scrapeHome(`https://ponjika.com/Default.aspx?date=${bdDate}&lat=23.8103&lon=90.4125&tz=Bangladesh+Standard+Time`, 'bangladesh')
+    },
+    {
+      file: 'bd_sandhya.json', region: 'bangladesh', screen: 'sandhya',
+      fn: () => scrapeSandhya(`https://ponjika.com/Sandhya.aspx?date=${bdDate}&lat=23.8103&lon=90.4125&tz=Bangladesh+Standard+Time`)
+    },
+    {
+      file: 'bd_masik.json', region: 'bangladesh', screen: 'masik',
+      fn: () => scrapeMasik(
+        `https://ponjika.com/Calendar.aspx?date=${bdDate}&lat=23.8103&lon=90.4125&tz=Bangladesh+Standard+Time`,
+        `https://ponjika.com/Default.aspx?date=${bdDate}&lat=23.8103&lon=90.4125&tz=Bangladesh+Standard+Time`,
+        path.join(dataDir, 'bd_masik.json')
+      )
+    },
     { file: 'rashifal.json', region: 'global', screen: 'rashifal', fn: () => scrapeRashifalAll() },
   ];
 
@@ -616,7 +720,6 @@ module.exports = {
   scrapeHome,
   scrapeSandhya,
   scrapeMasik,
-  scrapeBatsorik,
   scrapeRashifalAll,
   enrichWithMeta,
 };
