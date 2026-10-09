@@ -67,6 +67,11 @@
       "বিকাল ৫:১৩"
     ],
     [
+      "গোধুলী",
+      "বিকাল ৫:০১",
+      "বিকাল ৫:২৫"
+    ],
+    [
       "সান্ধ্যকালীন / সায়ন সন্ধ্যা",
       "বিকাল ৪:৪৯",
       "বিকাল ৫:৩৭"
@@ -86,12 +91,12 @@
     "region": "kolkata",
     "screen": "sandhya",
     "checkedOn": "2026-10-09",
-    "contentHash": "b66f5793226bab641d357d57254aa84a1373ed0773c488fcbd021f5d915a4c7f",
+    "contentHash": "d766e8725e555fbcad931711db197a4d64e1d7395563f49857fa70737c289ee5",
     "previousContentHash": "b66f5793226bab641d357d57254aa84a1373ed0773c488fcbd021f5d915a4c7f",
     "previousCheckedOn": "2026-10-09",
     "contentLastChangedOn": "2026-10-09",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
