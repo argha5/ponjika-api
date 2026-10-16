@@ -8,32 +8,32 @@
     ],
     [
       "অরুণোদয় কাল",
-      "ভোর ৪:০০",
-      "ভোর ৫:৩৬"
+      "ভোর ৪:০১",
+      "ভোর ৫:৩৭"
     ],
     [
       "ব্রহ্ম মুহূর্ত",
-      "ভোর ৪:৪৮",
-      "ভোর ৫:১২"
+      "ভোর ৪:৪৯",
+      "ভোর ৫:১৩"
     ],
     [
       "প্রাতঃ সন্ধ্যা",
-      "ভোর ৫:১২",
-      "ভোর ৬:০০"
+      "ভোর ৫:১৩",
+      "ভোর ৬:০১"
     ],
     [
       "সূর্যোদয় ও সূর্যাস্ত",
-      "ভোর ৫:৩৬",
+      "ভোর ৫:৩৭",
       "বিকাল ৫:০৬"
     ],
     [
       "প্রাতঃকাল",
-      "ভোর ৫:৩৬",
-      "ভোর ৭:৫৪"
+      "ভোর ৫:৩৭",
+      "ভোর ৭:৫৫"
     ],
     [
       "সঙ্গব কাল",
-      "ভোর ৭:৫৪",
+      "ভোর ৭:৫৫",
       "সকাল ১০:১২"
     ],
     [
@@ -79,24 +79,24 @@
     [
       "প্রদোষ কাল",
       "বিকাল ৫:০৬",
-      "বিকাল ৬:৪৭"
+      "বিকাল ৬:৪৬"
     ],
     [
       "নিশীথ কাল",
-      "রাত্র ১০:৫৭",
+      "রাত্র ১০:৫৬",
       "রাত্র ১১:৪৭"
     ]
   ],
   "meta": {
     "region": "kolkata",
     "screen": "sandhya",
-    "checkedOn": "2026-10-16",
-    "contentHash": "9b08bdc23b1db71c906c57ec05cb5faec02bc76bd1d83ed16be3aa9cf5f1a5ce",
+    "checkedOn": "2026-10-17",
+    "contentHash": "cc0246b7c03540d72d8e1d4345e4c9f6585d566887875f7a447df8b5ecaf6b47",
     "previousContentHash": "9b08bdc23b1db71c906c57ec05cb5faec02bc76bd1d83ed16be3aa9cf5f1a5ce",
     "previousCheckedOn": "2026-10-16",
-    "contentLastChangedOn": "2026-10-16",
+    "contentLastChangedOn": "2026-10-17",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
