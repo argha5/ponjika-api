@@ -80,13 +80,13 @@
   "meta": {
     "region": "bangladesh",
     "screen": "masik",
-    "checkedOn": "2026-10-21",
+    "checkedOn": "2026-10-22",
     "contentHash": "6cbd9c82919684ec5ece34974923746caade10bb1891c21ec0e3686cd65ae32e",
     "previousContentHash": "6cbd9c82919684ec5ece34974923746caade10bb1891c21ec0e3686cd65ae32e",
     "previousCheckedOn": "2026-10-21",
     "contentLastChangedOn": "2026-10-19",
     "isUpdatedForToday": false,
     "isSameAsPreviousSnapshot": true,
-    "isSameAsPreviousDay": false
+    "isSameAsPreviousDay": true
   }
 }

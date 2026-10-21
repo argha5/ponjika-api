@@ -29,11 +29,11 @@
     [
       "প্রাতঃকাল",
       "ভোর ৫:৩৯",
-      "ভোর ৭:৫৫"
+      "ভোর ৭:৫৬"
     ],
     [
       "সঙ্গব কাল",
-      "ভোর ৭:৫৫",
+      "ভোর ৭:৫৬",
       "সকাল ১০:১২"
     ],
     [
@@ -48,13 +48,13 @@
     ],
     [
       "মধ্যাহ্ন সন্ধ্যা",
-      "সকাল ১০:৫৭",
-      "সকাল ১১:৪৫"
+      "সকাল ১০:৫৬",
+      "সকাল ১১:৪৪"
     ],
     [
       "অপরাহ্ণ কাল",
       "দুপুর ১২:২৯",
-      "দুপুর ২:৪৬"
+      "দুপুর ২:৪৫"
     ],
     [
       "বিজয় মুহূর্ত",
@@ -63,7 +63,7 @@
     ],
     [
       "সায়াহ্ন কাল",
-      "দুপুর ২:৪৬",
+      "দুপুর ২:৪৫",
       "বিকাল ৫:০২"
     ],
     [
@@ -83,20 +83,20 @@
     ],
     [
       "নিশীথ কাল",
-      "রাত্র ১০:৫৬",
+      "রাত্র ১০:৫৫",
       "রাত্র ১১:৪৬"
     ]
   ],
   "meta": {
     "region": "kolkata",
     "screen": "sandhya",
-    "checkedOn": "2026-10-21",
-    "contentHash": "9fa0e4f3e0fe6e487a5a904f09fbbfe1121c1e82cbfc785f1c1346267c9964f9",
+    "checkedOn": "2026-10-22",
+    "contentHash": "8b802dab7c12c33c278840a8467959ae0777292375584b052e47de27d84d2ddb",
     "previousContentHash": "9fa0e4f3e0fe6e487a5a904f09fbbfe1121c1e82cbfc785f1c1346267c9964f9",
     "previousCheckedOn": "2026-10-21",
-    "contentLastChangedOn": "2026-10-21",
+    "contentLastChangedOn": "2026-10-22",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
