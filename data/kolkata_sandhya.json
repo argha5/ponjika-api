@@ -90,13 +90,13 @@
   "meta": {
     "region": "kolkata",
     "screen": "sandhya",
-    "checkedOn": "2026-10-28",
+    "checkedOn": "2026-10-29",
     "contentHash": "fda788dbf41075c9e0ce1275f1d9daee0549f78160f35f49ed63b15c5ab2125b",
     "previousContentHash": "fda788dbf41075c9e0ce1275f1d9daee0549f78160f35f49ed63b15c5ab2125b",
     "previousCheckedOn": "2026-10-28",
     "contentLastChangedOn": "2026-10-28",
-    "isUpdatedForToday": true,
+    "isUpdatedForToday": false,
     "isSameAsPreviousSnapshot": true,
-    "isSameAsPreviousDay": false
+    "isSameAsPreviousDay": true
   }
 }
