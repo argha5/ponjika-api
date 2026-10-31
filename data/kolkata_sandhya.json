@@ -79,7 +79,7 @@
     [
       "প্রদোষ কাল",
       "বিকাল ৪:৫৫",
-      "বিকাল ৬:৩৮"
+      "বিকাল ৬:৩৭"
     ],
     [
       "নিশীথ কাল",
@@ -90,13 +90,13 @@
   "meta": {
     "region": "kolkata",
     "screen": "sandhya",
-    "checkedOn": "2026-10-31",
-    "contentHash": "d29e4cb659cef4e667612a6ffad8341c6fe773efec2ec3245662e8bafa05b65d",
+    "checkedOn": "2026-11-01",
+    "contentHash": "eb532b911272b522efe3d44389ae31544873efa8ae83c6b97d0d24a06769075c",
     "previousContentHash": "d29e4cb659cef4e667612a6ffad8341c6fe773efec2ec3245662e8bafa05b65d",
     "previousCheckedOn": "2026-10-31",
-    "contentLastChangedOn": "2026-10-31",
+    "contentLastChangedOn": "2026-11-01",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
