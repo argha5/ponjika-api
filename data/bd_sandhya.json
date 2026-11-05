@@ -68,8 +68,8 @@
     ],
     [
       "গোধুলী",
-      "বিকাল ৫:০১",
-      "বিকাল ৫:২৫"
+      "বিকাল ৪:২৯",
+      "বিকাল ৫:১৩"
     ],
     [
       "সান্ধ্যকালীন / সায়ন সন্ধ্যা",
@@ -91,12 +91,12 @@
     "region": "bangladesh",
     "screen": "sandhya",
     "checkedOn": "2026-11-05",
-    "contentHash": "7263b038979d820622ffd746cb287ee044da75ec738cf893e597f3a498e27328",
+    "contentHash": "f9fb1ff3f43d2cf451b05de60c0e5be8f4795550e858f78666709fc805f62443",
     "previousContentHash": "7263b038979d820622ffd746cb287ee044da75ec738cf893e597f3a498e27328",
     "previousCheckedOn": "2026-11-05",
     "contentLastChangedOn": "2026-11-05",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
