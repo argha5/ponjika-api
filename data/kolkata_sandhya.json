@@ -48,8 +48,8 @@
     ],
     [
       "মধ্যাহ্ন সন্ধ্যা",
-      "সকাল ১০:৫৫",
-      "সকাল ১১:৪৩"
+      "সকাল ১০:৫৬",
+      "সকাল ১১:৪৪"
     ],
     [
       "অপরাহ্ণ কাল",
@@ -68,7 +68,7 @@
     ],
     [
       "গোধুলী",
-      "বিকাল ৪:০৮",
+      "বিকাল ৪:০৭",
       "বিকাল ৪:৫২"
     ],
     [
@@ -90,13 +90,13 @@
   "meta": {
     "region": "kolkata",
     "screen": "sandhya",
-    "checkedOn": "2026-11-06",
-    "contentHash": "6bcd6155cfa2cca546e3b65020682ea4a018b93cac9cd923a052a51db8ba0ca3",
+    "checkedOn": "2026-11-07",
+    "contentHash": "5fb137998fff9c0b4a39cd5edf4f9b132458b16ee46f79b27121f9d92fe91660",
     "previousContentHash": "6bcd6155cfa2cca546e3b65020682ea4a018b93cac9cd923a052a51db8ba0ca3",
     "previousCheckedOn": "2026-11-06",
-    "contentLastChangedOn": "2026-11-06",
+    "contentLastChangedOn": "2026-11-07",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
