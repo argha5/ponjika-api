@@ -34,22 +34,22 @@
     [
       "সঙ্গব কাল",
       "সকাল ৮:২৪",
-      "সকাল ১০:৩৫"
+      "সকাল ১০:৩৬"
     ],
     [
       "মধ্যাহ্ন কাল",
-      "সকাল ১০:৩৫",
+      "সকাল ১০:৩৬",
       "দুপুর ১২:৪৭"
     ],
     [
       "অভিজিৎ মুহূর্ত",
-      "সকাল ১১:১৯",
+      "সকাল ১১:২০",
       "দুপুর ১২:০৩"
     ],
     [
       "মধ্যাহ্ন সন্ধ্যা",
-      "সকাল ১১:১৭",
-      "দুপুর ১২:০৫"
+      "সকাল ১১:১৮",
+      "দুপুর ১২:০৬"
     ],
     [
       "অপরাহ্ণ কাল",
@@ -90,13 +90,13 @@
   "meta": {
     "region": "bangladesh",
     "screen": "sandhya",
-    "checkedOn": "2026-11-08",
-    "contentHash": "6d747a275c5480de7e51b68c1b637d38a3d41fae0b1b8056988316abbf354938",
+    "checkedOn": "2026-11-09",
+    "contentHash": "b956f30fadf7eed8676c3c73675b7cbcbe5fbfc601ba21b932964f1d295425d5",
     "previousContentHash": "6d747a275c5480de7e51b68c1b637d38a3d41fae0b1b8056988316abbf354938",
     "previousCheckedOn": "2026-11-08",
-    "contentLastChangedOn": "2026-11-08",
+    "contentLastChangedOn": "2026-11-09",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
