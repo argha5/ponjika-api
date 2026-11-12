@@ -198,11 +198,11 @@
     "screen": "rashifal",
     "checkedOn": "2026-11-12",
     "contentHash": "6c53acfe09aa8211a6b365a32ec366db5a53f47167b83b61419014aa5af26e38",
-    "previousContentHash": "86fd6bd97f7fc7a5e2c48e8c8a2a96792dc31b0ce2a4bf771275422ef2ea7edb",
-    "previousCheckedOn": "2026-11-11",
+    "previousContentHash": "6c53acfe09aa8211a6b365a32ec366db5a53f47167b83b61419014aa5af26e38",
+    "previousCheckedOn": "2026-11-12",
     "contentLastChangedOn": "2026-11-12",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": false,
+    "isSameAsPreviousSnapshot": true,
     "isSameAsPreviousDay": false
   }
 }
