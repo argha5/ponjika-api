@@ -24,7 +24,7 @@
     [
       "সূর্যোদয় ও সূর্যাস্ত",
       "ভোর ৬:১৮",
-      "বিকাল ৫:০৮"
+      "বিকাল ৫:০৭"
     ],
     [
       "প্রাতঃকাল",
@@ -64,39 +64,39 @@
     [
       "সায়াহ্ন কাল",
       "দুপুর ২:৫৮",
-      "বিকাল ৫:০৮"
+      "বিকাল ৫:০৭"
     ],
     [
       "গোধুলী",
       "বিকাল ৪:২৪",
-      "বিকাল ৫:০৮"
+      "বিকাল ৫:০৭"
     ],
     [
       "সান্ধ্যকালীন / সায়ন সন্ধ্যা",
-      "বিকাল ৪:৪৪",
-      "বিকাল ৫:৩২"
+      "বিকাল ৪:৪৩",
+      "বিকাল ৫:৩১"
     ],
     [
       "প্রদোষ কাল",
-      "বিকাল ৫:০৮",
+      "বিকাল ৫:০৭",
       "বিকাল ৬:৫৩"
     ],
     [
       "নিশীথ কাল",
       "রাত্র ১১:১৭",
-      "নিশা ১২:০৯"
+      "নিশা ১২:১০"
     ]
   ],
   "meta": {
     "region": "bangladesh",
     "screen": "sandhya",
-    "checkedOn": "2026-11-17",
-    "contentHash": "4ff2c6cb6478bec97d00887068db040b333098c10523d988f662075640eec1b4",
+    "checkedOn": "2026-11-18",
+    "contentHash": "9422431732a259a675318304e09f4356c581f7282f7a62b7ca032135647714e1",
     "previousContentHash": "4ff2c6cb6478bec97d00887068db040b333098c10523d988f662075640eec1b4",
     "previousCheckedOn": "2026-11-17",
-    "contentLastChangedOn": "2026-11-17",
+    "contentLastChangedOn": "2026-11-18",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }

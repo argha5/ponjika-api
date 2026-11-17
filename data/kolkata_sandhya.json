@@ -34,11 +34,11 @@
     [
       "সঙ্গব কাল",
       "সকাল ৮:০৫",
-      "সকাল ১০:১৫"
+      "সকাল ১০:১৬"
     ],
     [
       "মধ্যাহ্ন কাল",
-      "সকাল ১০:১৫",
+      "সকাল ১০:১৬",
       "দুপুর ১২:২৬"
     ],
     [
@@ -84,19 +84,19 @@
     [
       "নিশীথ কাল",
       "রাত্র ১০:৫৫",
-      "রাত্র ১১:৪৭"
+      "রাত্র ১১:৪৮"
     ]
   ],
   "meta": {
     "region": "kolkata",
     "screen": "sandhya",
-    "checkedOn": "2026-11-17",
-    "contentHash": "484b234c9f7f67280e4cd219ceb0f274605f216b850b0a28dca3931414f28e36",
+    "checkedOn": "2026-11-18",
+    "contentHash": "ea70e872a0d258fd0af239df552c8456d87f56c11a5aecd0a3af8c90c8bd9ca8",
     "previousContentHash": "484b234c9f7f67280e4cd219ceb0f274605f216b850b0a28dca3931414f28e36",
     "previousCheckedOn": "2026-11-17",
-    "contentLastChangedOn": "2026-11-17",
+    "contentLastChangedOn": "2026-11-18",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
