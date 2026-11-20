@@ -8,42 +8,42 @@
     ],
     [
       "অরুণোদয় কাল",
-      "ভোর ৪:৪৩",
-      "ভোর ৬:১৯"
+      "ভোর ৪:৪৪",
+      "ভোর ৬:২০"
     ],
     [
       "ব্রহ্ম মুহূর্ত",
-      "ভোর ৫:৩১",
-      "ভোর ৫:৫৫"
+      "ভোর ৫:৩২",
+      "ভোর ৫:৫৬"
     ],
     [
       "প্রাতঃ সন্ধ্যা",
-      "ভোর ৫:৫৫",
-      "ভোর ৬:৪৩"
+      "ভোর ৫:৫৬",
+      "ভোর ৬:৪৪"
     ],
     [
       "সূর্যোদয় ও সূর্যাস্ত",
-      "ভোর ৬:১৯",
+      "ভোর ৬:২০",
       "বিকাল ৫:০৭"
     ],
     [
       "প্রাতঃকাল",
-      "ভোর ৬:১৯",
+      "ভোর ৬:২০",
       "সকাল ৮:২৯"
     ],
     [
       "সঙ্গব কাল",
       "সকাল ৮:২৯",
-      "সকাল ১০:৩৮"
+      "সকাল ১০:৩৯"
     ],
     [
       "মধ্যাহ্ন কাল",
-      "সকাল ১০:৩৮",
+      "সকাল ১০:৩৯",
       "দুপুর ১২:৪৮"
     ],
     [
       "অভিজিৎ মুহূর্ত",
-      "সকাল ১১:২১",
+      "সকাল ১১:২২",
       "দুপুর ১২:০৫"
     ],
     [
@@ -90,13 +90,13 @@
   "meta": {
     "region": "bangladesh",
     "screen": "sandhya",
-    "checkedOn": "2026-11-19",
-    "contentHash": "b29ffafd7cdb8b06b3efe6249cb9cf9778275fdaaac454d97cd28768f277172f",
+    "checkedOn": "2026-11-20",
+    "contentHash": "11ed3e4dbad4ded5735137caadd979daf7b8684e79715cbae647f85cb31622a4",
     "previousContentHash": "b29ffafd7cdb8b06b3efe6249cb9cf9778275fdaaac454d97cd28768f277172f",
     "previousCheckedOn": "2026-11-19",
-    "contentLastChangedOn": "2026-11-19",
+    "contentLastChangedOn": "2026-11-20",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": true,
+    "isSameAsPreviousSnapshot": false,
     "isSameAsPreviousDay": false
   }
 }
