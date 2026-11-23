@@ -90,13 +90,13 @@
   "meta": {
     "region": "bangladesh",
     "screen": "sandhya",
-    "checkedOn": "2026-11-23",
+    "checkedOn": "2026-11-24",
     "contentHash": "e3e2a0d7e435a7e2fee2f9f6c5cf73a1bbd253d9dede1fa5ffa7c72096f0e75c",
     "previousContentHash": "e3e2a0d7e435a7e2fee2f9f6c5cf73a1bbd253d9dede1fa5ffa7c72096f0e75c",
     "previousCheckedOn": "2026-11-23",
     "contentLastChangedOn": "2026-11-23",
-    "isUpdatedForToday": true,
+    "isUpdatedForToday": false,
     "isSameAsPreviousSnapshot": true,
-    "isSameAsPreviousDay": false
+    "isSameAsPreviousDay": true
   }
 }
