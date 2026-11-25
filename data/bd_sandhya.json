@@ -92,11 +92,11 @@
     "screen": "sandhya",
     "checkedOn": "2026-11-25",
     "contentHash": "f76351e34da16b3b173fed30a309697072fcb9472cdadd766e050407712ad42d",
-    "previousContentHash": "e3e2a0d7e435a7e2fee2f9f6c5cf73a1bbd253d9dede1fa5ffa7c72096f0e75c",
-    "previousCheckedOn": "2026-11-24",
+    "previousContentHash": "f76351e34da16b3b173fed30a309697072fcb9472cdadd766e050407712ad42d",
+    "previousCheckedOn": "2026-11-25",
     "contentLastChangedOn": "2026-11-25",
     "isUpdatedForToday": true,
-    "isSameAsPreviousSnapshot": false,
+    "isSameAsPreviousSnapshot": true,
     "isSameAsPreviousDay": false
   }
 }
